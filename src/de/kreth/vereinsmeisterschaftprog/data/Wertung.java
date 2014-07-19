@@ -28,6 +28,11 @@ public class Wertung implements Cloneable {
    private int id;
    
    @Override
+   public String toString() {
+      return durchgang + " kari1=" + kari1 + "; kari2=" + kari2 + "; kari3=" + kari3 + "; kari4=" + kari4 + "; kari5=" + kari5 + "; diff=" + schwierigkeit + "=>" + ergebnis;
+   }
+   
+   @Override
    public Wertung clone() {
       Wertung clone = new Wertung(id, durchgang);
       clone.kari1 = kari1;
@@ -125,7 +130,6 @@ public class Wertung implements Cloneable {
       pcs.firePropertyChange(DIFF_CHANGE_PROPERTY, OldValue, Double.valueOf(this.schwierigkeit));
    }
    
-
    private void calculate() {
       Double oldErgebnis = Double.valueOf(ergebnis);
       ergebnis = WertungCalculatorFactory.calculate(this);
@@ -140,7 +144,14 @@ public class Wertung implements Cloneable {
       return durchgang;
    }
 
-   
+   public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+      pcs.addPropertyChangeListener(propertyName, listener);
+   }
+
+   public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
+      pcs.removePropertyChangeListener(propertyName, listener);
+   }
+
    /**
     * PropertyName ist der Wert von {@link #getDurchgang()}
     * @param listener

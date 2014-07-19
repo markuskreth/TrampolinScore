@@ -28,7 +28,7 @@ class PersisterProductive implements Persister {
             String starterName = rs.getString("startername");
             int pflichtId = rs.getInt("pflicht");
             int kuerId = rs.getInt("kuer");
-            
+
             Wertung pflicht = getWertung(pflichtId);
             Wertung kuer = getWertung(kuerId);
 
@@ -36,7 +36,7 @@ class PersisterProductive implements Persister {
             e.addPropertyChangeListener(new PersisterErgebnisChangeListener(e));
             wk.add(e);
          }
-         
+
       } catch (SQLException e) {
          e.printStackTrace();
       }
@@ -71,12 +71,12 @@ class PersisterProductive implements Persister {
          w.setKari5(kari5);
 
       double schw = rs.getDouble("schwierigkeit");
-      
+
       if (!rs.wasNull())
          w.setSchwierigkeit(schw);
-      
+
       w.addPropertyChangeListener(new PeristerWertungChangeListener(w));
-      
+
       return w;
    }
 
@@ -99,7 +99,7 @@ class PersisterProductive implements Persister {
 
          hsql.executeUpdate("INSERT INTO wertung (durchgang) VALUES('" + Durchgang.KUER + "')", Statement.RETURN_GENERATED_KEYS);
          generatedKeys = hsql.getGeneratedKeys();
-         
+
          if (generatedKeys.next()) {
             int id = generatedKeys.getInt(1);
             kuer = new Wertung(id, Durchgang.KUER);
@@ -122,18 +122,18 @@ class PersisterProductive implements Persister {
       } catch (SQLException e) {
          e.printStackTrace();
       }
-      
+
       return result;
    }
 
    private class PersisterErgebnisChangeListener implements PropertyChangeListener {
-      
+
       private Ergebnis ergebnis;
       private PreparedStatement stmPunkteUpdate;
       private PreparedStatement stmPlatzUpdate;
       private Connection connection;
       private PreparedStatement stmNameUpdate;
-      
+
       public PersisterErgebnisChangeListener(Ergebnis ergebnis) {
          super();
          this.ergebnis = ergebnis;
@@ -147,58 +147,58 @@ class PersisterProductive implements Persister {
          }
       }
 
-
       @Override
       public void propertyChange(PropertyChangeEvent evt) {
-         
-         if(evt.getPropertyName().matches(Ergebnis.ERGEBNIS_CHANGE_PROPERTY)){
+
+         if (evt.getPropertyName().matches(Ergebnis.ERGEBNIS_CHANGE_PROPERTY)) {
             try {
                stmPunkteUpdate.setDouble(1, ergebnis.getErgebnis());
                int count = stmPunkteUpdate.executeUpdate();
-               
+
                if (count != 1) {
                   throw new IllegalStateException("Beim Update von Ergebnis ID=" + ergebnis.getId() + " wurden " + count + " Zeilen geändert!");
                }
-               
+
                connection.commit();
             } catch (SQLException e) {
                e.printStackTrace();
             }
-            
-         } else if(evt.getPropertyName().matches(Ergebnis.PLATZ_CHANGE_PROPERTY)){
+
+         } else if (evt.getPropertyName().matches(Ergebnis.PLATZ_CHANGE_PROPERTY)) {
             try {
                stmPlatzUpdate.setInt(1, ergebnis.getPlatz());
                int count = stmPlatzUpdate.executeUpdate();
-               
+
                if (count != 1) {
                   throw new IllegalStateException("Beim Update von Platz ID=" + ergebnis.getId() + " wurden " + count + " Zeilen geändert!");
                }
-               
+
                connection.commit();
             } catch (SQLException e) {
                e.printStackTrace();
             }
-            
-         } else if(evt.getPropertyName().matches(Ergebnis.STARTERNAME_CHANGE_PROPERTY)){
+
+         } else if (evt.getPropertyName().matches(Ergebnis.STARTERNAME_CHANGE_PROPERTY)) {
             try {
-               
+
                stmNameUpdate.setString(1, ergebnis.getStarterName());
                int count = stmNameUpdate.executeUpdate();
-               
+
                if (count != 1) {
-                  throw new IllegalStateException("Beim Update von StarterName ID=" + ergebnis.getId() + " wurden " + count + " Zeilen geändert(" + ergebnis.getStarterName() 
+                  throw new IllegalStateException("Beim Update von StarterName ID=" + ergebnis.getId() + " wurden " + count + " Zeilen geändert(" + ergebnis.getStarterName()
                         + ") !");
                }
-               
+
                connection.commit();
             } catch (SQLException e) {
                e.printStackTrace();
             }
-            
+
          }
       }
-      
+
    }
+
    private class PeristerWertungChangeListener implements PropertyChangeListener {
 
       private Wertung wertung;
@@ -291,7 +291,7 @@ class PersisterProductive implements Persister {
 
             if (evt.getPropertyName().matches(Wertung.DIFF_CHANGE_PROPERTY)) {
 
-               stmDiffUpdate.setDouble(1, wertung.getKari4());
+               stmDiffUpdate.setDouble(1, wertung.getSchwierigkeit());
 
                count = stmDiffUpdate.executeUpdate();
 
@@ -312,12 +312,12 @@ class PersisterProductive implements Persister {
                }
                connection.commit();
             }
-            
+
          } catch (SQLException e) {
             e.printStackTrace();
          }
       }
 
    }
-   
+
 }

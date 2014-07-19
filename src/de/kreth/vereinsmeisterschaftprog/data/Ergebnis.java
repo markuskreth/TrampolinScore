@@ -34,8 +34,8 @@ public class Ergebnis {
       this.kuer = kuer;
       
       PflichtORKuerErgebnisChangeListener l = new PflichtORKuerErgebnisChangeListener();
-      pflicht.addPropertyChangeListener(l);
-      kuer.addPropertyChangeListener(l);
+      pflicht.addPropertyChangeListener(Wertung.ERGEBNIS_CHANGE_PROPERTY, l);
+      kuer.addPropertyChangeListener(Wertung.ERGEBNIS_CHANGE_PROPERTY, l);
       calc.addPropertyChangeListener(new PropertyChangeListener() {
          
          @Override

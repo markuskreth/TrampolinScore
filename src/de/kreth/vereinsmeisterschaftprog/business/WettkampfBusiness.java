@@ -33,10 +33,11 @@ public class WettkampfBusiness {
 
    public void newStarter() {
       String starterName = JOptionPane.showInputDialog(panel, "Name des Starters", "Neuer Starter", JOptionPane.QUESTION_MESSAGE);
-      
-      Ergebnis e = persister.createErgebnis(starterName, wettkampf);
-      wettkampf.add(e);
-      panel.setWettkampf(wettkampf);
+      if(starterName != null && ! starterName.isEmpty()) {
+         Ergebnis e = persister.createErgebnis(starterName, wettkampf);
+         wettkampf.add(e);
+         panel.setWettkampf(wettkampf);
+      }
    }
 
    public void changePersonName(String oldStarterName) {

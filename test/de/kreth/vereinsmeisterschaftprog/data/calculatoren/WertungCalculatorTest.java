@@ -24,6 +24,20 @@ public class WertungCalculatorTest {
    }
    
    @Test
+   public void testKrummeWerte() {
+
+      Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
+      pflicht.setKari1(5.8);
+      pflicht.setKari2(5.7);
+      pflicht.setKari3(5.6);
+      pflicht.setKari4(5.7);
+      pflicht.setKari5(5.5);
+
+      double erg = calc5.calculate(pflicht);
+      assertEquals(17.0, erg, 0.001);
+   }
+   
+   @Test
    public void testCalculate5er() {
 
       Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);

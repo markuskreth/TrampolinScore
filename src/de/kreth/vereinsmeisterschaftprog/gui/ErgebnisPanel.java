@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.DecimalFormat;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -25,6 +26,7 @@ public class ErgebnisPanel extends JPanel {
    private JLabel lblPlatz;
    private Durchgang durchgang;
    private WertenDialog dlg;
+   private DecimalFormat df;
    
    /**
     * Create the panel.
@@ -36,6 +38,8 @@ public class ErgebnisPanel extends JPanel {
       FlowLayout flowLayout = (FlowLayout) getLayout();
       flowLayout.setHgap(15);
       this.durchgang = durchgang;
+
+      df = new DecimalFormat("#.0");
       
       lblStarterName = new JLabel("<StarterName>");
       add(lblStarterName);
@@ -65,10 +69,10 @@ public class ErgebnisPanel extends JPanel {
    
    private void updateValues() {
       lblStarterName.setText(ergebnis.getStarterName());
-      lblPflicht.setText(String.valueOf(ergebnis.getPflicht().getErgebnis()));
-      lblKuer.setText(String.valueOf(ergebnis.getKuer().getErgebnis()));
-      lblErgebnis.setText(String.valueOf(ergebnis.getErgebnis()));
-      lblPlatz.setText(String.valueOf(ergebnis.getPlatz()));
+      lblPflicht.setText(df.format(ergebnis.getPflicht().getErgebnis()));
+      lblKuer.setText(df.format(ergebnis.getKuer().getErgebnis()));
+      lblErgebnis.setText(df.format(ergebnis.getErgebnis()));
+      lblPlatz.setText(df.format(ergebnis.getPlatz()));
    }
    
    private class PCL implements PropertyChangeListener {

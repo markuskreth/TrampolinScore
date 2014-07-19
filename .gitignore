@@ -9,6 +9,8 @@ doc/
 *.o
 *.so
 *.zargo~
+db/
+*.csv
 
 # Android/ Eclipse
 gen/
