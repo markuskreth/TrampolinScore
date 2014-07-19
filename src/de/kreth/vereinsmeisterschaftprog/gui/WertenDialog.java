@@ -213,7 +213,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
          }
          {
-            lblErgebnis = new JLabel("Ergebnis");
+            lblErgebnis = new JLabel("90,3");
             lblErgebnis.setHorizontalAlignment(SwingConstants.CENTER);
             lblErgebnis.setHorizontalTextPosition(SwingConstants.CENTER);
             GridBagConstraints gbc_lblErgebnis = new GridBagConstraints();
@@ -428,12 +428,12 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
                      break;
                }
                
-               lblErgebnis.setText(formatter.format(wertung.getErgebnis()));
             } catch (ParseException e1) {
                markAsError(field);
                e1.printStackTrace();
             }
          }
+         lblErgebnis.setText(formatter.format(wertung.getErgebnis()));
       }
    }
 
