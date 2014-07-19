@@ -41,7 +41,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
       setDefaultCloseOperation(HIDE_ON_CLOSE);
 
-      DecimalFormat df = new DecimalFormat("#.0");
+      DecimalFormat df = new DecimalFormat("0.0#");
       formatter = DecimalFormatHelper.getFormatter(1);
 
       setBounds(100, 100, 655, 214);
@@ -400,7 +400,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
             try {
                Number number = formatter.parse(field.getText());
                
-               if(number.doubleValue()%10==0){
+               if(number.doubleValue()*10%10==0){
                   number = Double.valueOf(number.doubleValue()/10);
                   field.setText(formatter.format(number.doubleValue()));
                }
@@ -408,16 +408,22 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
                switch (kari) {
                   case 1:
                      wertung.setKari1(number.doubleValue());
+                     break;
                   case 2:
                      wertung.setKari2(number.doubleValue());
+                     break;
                   case 3:
                      wertung.setKari3(number.doubleValue());
+                     break;
                   case 4:
                      wertung.setKari4(number.doubleValue());
+                     break;
                   case 5:
                      wertung.setKari5(number.doubleValue());
+                     break;
                   case 7:
                      wertung.setSchwierigkeit(number.doubleValue());
+                     break;
                   default:
                      break;
                }

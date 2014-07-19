@@ -1,31 +1,38 @@
 package de.kreth.vereinsmeisterschaftprog.gui;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.text.DecimalFormat;
 import java.util.*;
-import java.util.List;
 
 import javax.swing.*;
+import javax.swing.table.*;
 
 import de.kreth.vereinsmeisterschaftprog.business.WettkampfBusiness;
 import de.kreth.vereinsmeisterschaftprog.data.*;
 
-
 public class WettkampfPanel extends JPanel {
 
    private static final long serialVersionUID = -257839817852907002L;
-   private SortableListModlel model;
+
    private WettkampfBusiness business;
+   private JTable table;
+   private MyTableModel tableModel;
+   final JComboBox<Durchgang> comboBox_Durchgang = new JComboBox<>();
 
    /**
     * Create the panel.
-    * @param wettkampfBusiness 
+    * 
+    * @param wettkampfBusiness
     */
    public WettkampfPanel(final WettkampfBusiness wettkampfBusiness) {
       this.business = wettkampfBusiness;
       
       setLayout(new BorderLayout(0, 0));
-      final ErgebnisListRenderer ergebnisListRenderer = new ErgebnisListRenderer(wettkampfBusiness);
       
       JPanel panel = new JPanel();
       add(panel, BorderLayout.NORTH);
@@ -43,23 +50,9 @@ public class WettkampfPanel extends JPanel {
       JLabel lblDurchgang = new JLabel("Durchgang");
       panel.add(lblDurchgang);
       
-      final JComboBox<Durchgang> comboBox_1 = new JComboBox<>();
-      comboBox_1.setModel(new DefaultComboBoxModel<Durchgang>(Durchgang.values()));
-      comboBox_1.addActionListener(new ActionListener() {
-         
-         @Override
-         public void actionPerformed(ActionEvent e) {
-            Durchgang durchgang = (Durchgang) comboBox_1.getSelectedItem();
-            ergebnisListRenderer.setDurchgang(durchgang);
-         }
-      });
-      panel.add(comboBox_1);
+      comboBox_Durchgang.setModel(new DefaultComboBoxModel<Durchgang>(Durchgang.values()));
+      panel.add(comboBox_Durchgang);
 
-//      Durchgang durchgang = (Durchgang) comboBox_1.getSelectedItem();
-//      ergebnisListRenderer.setDurchgang(durchgang);
-//
-//      ergebnisListRenderer.setDurchgang(Durchgang.KUER);
-      
       JLabel lblSortierung = new JLabel("Sortierung");
       panel.add(lblSortierung);
       
@@ -70,111 +63,218 @@ public class WettkampfPanel extends JPanel {
          @Override
          public void actionPerformed(ActionEvent e) {
             Sortierung sort = (Sortierung) comboBox.getSelectedItem();
-            model.setSortierung(sort );
+            tableModel.setSortierung(sort );
          }
       });
-      panel.add(comboBox);
       
-      final JList<Ergebnis> list = new JList<>();
-      list.setCellRenderer(ergebnisListRenderer);
-      model = new SortableListModlel();
-      list.setModel(model);
-      list.addMouseListener(new MouseAdapter() {
-
-         @Override
-         public void mouseClicked(MouseEvent e) {
-             int index = list.locationToIndex(e.getPoint());
-             if (index > -1) {
-
-                 Rectangle bounds = list.getCellBounds(index, index);
-                 ErgebnisListRenderer cellRenderer = (ErgebnisListRenderer) list.getCellRenderer();
-                 Component renderComp = cellRenderer.getListCellRendererComponent(list, list.getModel().getElementAt(index), index, false, false);
-                 renderComp.setBounds(bounds);
-
-                 Point local = new Point(e.getPoint());
-                 local.x -= bounds.x;
-                 local.y -= bounds.y;
-
-                 cellRenderer.buttonClicked(renderComp);
-
-             }
-         }
-      });
-      add(list, BorderLayout.CENTER);
+      panel.add(comboBox);
+      tableModel = new MyTableModel();
+      table = new JTable();
+      table.setModel(tableModel);
+      
+      TableColumnModel columnModel = table.getColumnModel();
+      TableColumn btnColumn = columnModel.getColumn(5);
+      int width = 50;
+      for(int i=0; i<columnModel.getColumnCount(); i++) {
+         if(i==0)
+            columnModel.getColumn(i).setPreferredWidth(width*3);
+         else if(i==5)
+            columnModel.getColumn(i).setPreferredWidth((int) (width*1.5));
+         else
+            columnModel.getColumn(i).setPreferredWidth(width);
+      }
+      btnColumn.setCellRenderer(new ButtonRenderer());
+      btnColumn.setCellEditor(new ButtonEditor());
+      JScrollPane scroller = new JScrollPane(table);
+      add(scroller, BorderLayout.CENTER);
+      
       
    }
 
    public void setWettkampf(Wettkampf wettkampf) {
-      model.removeAllElements();
-      for(Ergebnis e: wettkampf.getErgebnisse())
-         model.addElement(e);
+
+      tableModel.removeAllElements();
+      for (Ergebnis e : wettkampf.getErgebnisse())
+         tableModel.addElement(e);
    }
 
-   private class SortableListModlel extends AbstractListModel<Ergebnis> {
+   private class ButtonRenderer implements TableCellRenderer {
 
-      private static final long serialVersionUID = 2910124315519583475L;
-      private List<Ergebnis> data = new ArrayList<>();
-      private SortierungComperator comperator = new SortierungComperator();
-      
       @Override
-      public int getSize() {
-         return data.size();
+      public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+         JButton btn = (JButton) value;
+         if (isSelected) {
+            btn.setForeground(table.getSelectionForeground());
+            btn.setBackground(table.getSelectionBackground());
+         } else {
+            btn.setForeground(table.getForeground());
+            btn.setBackground(UIManager.getColor("Button.background"));
+         }
+         return btn;
       }
 
-      public void addElement(Ergebnis e) {
-         int startIndex = data.size()-1;
-         
-         if(startIndex<0)
-            startIndex = 0;
-         
-         data.add(e);
+   }
+
+   private class ButtonEditor extends AbstractCellEditor implements ActionListener, TableCellEditor {
+      
+      private static final long serialVersionUID = -3269232034263059218L;
+      private JButton button;
+
+      public ButtonEditor() {
+
+         button = new JButton();
+         button.addActionListener(this);
+         button.setBorderPainted(false);
+      }
+      
+      @Override
+      public Object getCellEditorValue() {
+         return null;
+      }
+
+      @Override
+      public void actionPerformed(ActionEvent ev) {
+         fireEditingStopped();
+      }
+
+      @Override
+      public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+         return (JButton) value;
+      }
+      
+   }
+   
+   private class MyTableModel extends AbstractTableModel {
+
+      private static final long serialVersionUID = 2910124315519583475L;
+      private String[] columnNames = { "Starter", "Pflicht", "Kür", "Gesamt", "Platz", "" };
+      private List<Ergebnis> data = new ArrayList<>();
+      private List<JButton> editButtons = new ArrayList<>();
+
+      DecimalFormat df = new DecimalFormat("0.0##");
+
+      private SortierungComperator comperator = new SortierungComperator();
+
+      public void setSortierung(Sortierung sort) {
+         comperator.setSortierung(sort);
          Collections.sort(data, comperator);
-         fireIntervalAdded(this, startIndex, startIndex+1);
+         fireTableDataChanged();
+      }
+
+      public void addElement(final Ergebnis e) {
+         data.add(e);
+         e.addPropertyChangeListener(new PropertyChangeListener() {
+            
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+               Collections.sort(data, comperator);
+               fireTableDataChanged();
+            }
+         });
+         JButton b = new JButton("Werten");
+         b.addActionListener(new ActionListener() {
+            int index = data.size()-1;
+            @Override
+            public void actionPerformed(ActionEvent ev) {
+               business.werteErgebnis(data.get(index), (Durchgang) comboBox_Durchgang.getSelectedItem());
+            }
+         });
+         editButtons.add(b);
+         fireTableDataChanged();
       }
 
       public void removeAllElements() {
-         
-         if( ! data.isEmpty()) {
-            int index1 = data.size()-1;
-            data.clear();
-            fireIntervalRemoved(this, 0, index1);
-         }
-         
+         data.clear();
+         editButtons.clear();
+         fireTableDataChanged();
       }
 
       @Override
-      public Ergebnis getElementAt(int index) {
-         return data.get(index);
+      public String getColumnName(int column) {
+         return columnNames[column];
       }
-      
+
+      @Override
+      public int getRowCount() {
+         return data.size();
+      }
+
+      @Override
+      public boolean isCellEditable(int rowIndex, int columnIndex) {
+         if(columnIndex==5)
+            return true;
+         return false;
+      }
+
+      @Override
+      public int getColumnCount() {
+         return columnNames.length;
+      }
+
+      @Override
+      public Class<?> getColumnClass(int columnIndex) {
+         if (columnIndex == 5)
+            return JComponent.class;
+
+         return String.class;
+      }
+
+      @Override
+      public Object getValueAt(int rowIndex, int columnIndex) {
+         Ergebnis ergebnis = data.get(rowIndex);
+         Object value;
+         switch (columnIndex) {
+            case 0:
+               value = ergebnis.getStarterName();
+               break;
+
+            case 1:
+               value = df.format(ergebnis.getPflicht().getErgebnis());
+               break;
+
+            case 2:
+               value = df.format(ergebnis.getKuer().getErgebnis());
+               break;
+
+            case 3:
+               value = df.format(ergebnis.getErgebnis());
+               break;
+            case 4:
+               value = ergebnis.getPlatz() + ".";
+               break;
+            case 5:
+               value = editButtons.get(rowIndex);
+               break;
+            default:
+               value = "";
+               break;
+         }
+
+         return value;
+      }
+   }
+
+   private class SortierungComperator implements Comparator<Ergebnis> {
+
+      private Sortierung sort = Sortierung.Nach_Startreihenfolge;
+
+      @Override
+      public int compare(Ergebnis o1, Ergebnis o2) {
+         switch (sort) {
+            case Nach_Ergebnis:
+               int compare = Double.compare(o1.getPlatz(), o2.getPlatz());
+               return compare == 0 ? Integer.compare(o1.getId(), o2.getId()) : compare;
+            case Nach_Startreihenfolge:
+               return Integer.compare(o1.getId(), o2.getId());
+            default:
+               break;
+         }
+         return 0;
+      }
+
       public void setSortierung(Sortierung sort) {
-         comperator.setSortierung(sort);
-         Collections.sort(data, comperator);            
-         fireContentsChanged(this, 0, data.size() - 1);
+         this.sort = sort;
       }
-      
-      private class SortierungComperator implements Comparator<Ergebnis> {
 
-         private Sortierung sort = Sortierung.Nach_Startreihenfolge;
-
-         @Override
-         public int compare(Ergebnis o1, Ergebnis o2) {
-            switch (sort) {
-               case Nach_Ergebnis:
-                  int compare = Double.compare(o1.getPlatz(), o2.getPlatz());
-                  return compare == 0?Integer.compare(o1.getId(), o2.getId()):compare;
-               case Nach_Startreihenfolge:
-                  return Integer.compare(o1.getId(), o2.getId());
-               default:
-                  break;
-            }
-            return 0;
-         }
-
-         public void setSortierung(Sortierung sort) {
-            this.sort = sort;
-         }
-         
-      }
    }
 }

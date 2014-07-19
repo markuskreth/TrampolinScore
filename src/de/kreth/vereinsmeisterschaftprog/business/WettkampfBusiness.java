@@ -5,21 +5,23 @@ import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 import de.kreth.vereinsmeisterschaftprog.Factory;
-import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
-import de.kreth.vereinsmeisterschaftprog.data.Wettkampf;
+import de.kreth.vereinsmeisterschaftprog.data.*;
 import de.kreth.vereinsmeisterschaftprog.db.Persister;
+import de.kreth.vereinsmeisterschaftprog.gui.WertenDialog;
 import de.kreth.vereinsmeisterschaftprog.gui.WettkampfPanel;
 
 
 public class WettkampfBusiness {
    
    private WettkampfPanel panel;
+   private WertenDialog dlg;
    private Wettkampf wettkampf;
    private Persister persister;
    
    public WettkampfBusiness() {
       this.panel = new WettkampfPanel(this);
       persister = Factory.getInstance().getPersister();
+      dlg = new WertenDialog(this);
    }
 
    public void setWettkampf(Wettkampf wettkampf) {
@@ -50,6 +52,21 @@ public class WettkampfBusiness {
             break;
          }
       }
+   }
+
+   public void werteErgebnis(Ergebnis e, Durchgang durchgang) {
+      Wertung wertung;
+      switch (durchgang) {
+         case KUER:
+            wertung = e.getKuer();
+            break;
+         case PFLICHT:
+         default:
+            wertung = e.getPflicht();
+            break;
+      }
+      dlg.setWertung(e.getStarterName(), wertung);
+      dlg.setVisible(true);
    }
 
 }
