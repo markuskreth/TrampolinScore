@@ -47,20 +47,31 @@ public class DatabaseTableCreator {
                hsql.execute(sql);
             }
 
+         case 3:
+
+            for(String sql : version3){
+               hsql.execute(sql);
+            }
+
          default:
             break;
       }
    }
    
    private String[] version1 = {
-         "CREATE TABLE version (value INTEGER)",
-         "INSERT INTO version VALUES(1)",
-         "CREATE TABLE wertung (id INTEGER IDENTITY, durchgang varchar(255) NOT NULL, kari1 REAL, kari2 REAL, kari3 REAL, kari4 REAL, kari5 REAL, schwierigkeit REAL, ergebnis REAL)",
-         "CREATE TABLE ergebnis (id INTEGER IDENTITY, startername VARCHAR(255) NOT NULL, pflicht INTEGER, kuer INTEGER, ergebnis REAL, platz INTEGER, FOREIGN KEY (pflicht) REFERENCES wertung(id), FOREIGN KEY (kuer) REFERENCES wertung(id))"
+         "CREATE TABLE VERSION (value INTEGER)",
+         "INSERT INTO VERSION VALUES(1)",
+         "CREATE TABLE WERTUNG (id INTEGER IDENTITY, durchgang varchar(255) NOT NULL, kari1 REAL, kari2 REAL, kari3 REAL, kari4 REAL, kari5 REAL, schwierigkeit REAL, ergebnis REAL)",
+         "CREATE TABLE ERGEBNIS (id INTEGER IDENTITY, startername VARCHAR(255) NOT NULL, pflicht INTEGER, kuer INTEGER, ergebnis REAL, platz INTEGER, FOREIGN KEY (pflicht) REFERENCES wertung(id), FOREIGN KEY (kuer) REFERENCES wertung(id))"
    };
 
    private String[] version2 = {
-         "ALTER TABLE ergebnis ADD wettkampf VARCHAR(25)",
+         "ALTER TABLE ERGEBNIS ADD wettkampf VARCHAR(25)",
          "UPDATE version set value=2"
+   };
+   
+   private String[] version3 = {
+         "CREATE TABLE GRUPPE (id INTEGER IDENTITY, name varchar(255) NOT NULL, beschreibungvarchar(255) NULL)",
+         "UPDATE version set value=3"
    };
 }

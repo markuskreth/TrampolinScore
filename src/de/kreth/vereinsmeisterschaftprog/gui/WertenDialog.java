@@ -10,6 +10,7 @@ import java.text.ParseException;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import de.kreth.vereinsmeisterschaftprog.business.InputConverter;
 import de.kreth.vereinsmeisterschaftprog.business.WettkampfBusiness;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
@@ -20,6 +21,8 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
    private static final long serialVersionUID = -878644536065558566L;
    private final JPanel contentPanel = new JPanel();
 
+   private InputConverter converter = new InputConverter();
+   
    private JFormattedTextField txtKari1;
    private JFormattedTextField txtKari2;
    private JFormattedTextField txtKari3;
@@ -29,7 +32,6 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
    private JLabel lblStarter;
    private String starterName;
    private Wertung wertung;
-   private DecimalFormat formatter;
    private Wertung dummy;
    private JLabel lblErgebnis;
 
@@ -41,7 +43,6 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
       setDefaultCloseOperation(HIDE_ON_CLOSE);
 
       DecimalFormat df = new DecimalFormat("0.0#");
-      formatter = DecimalFormatHelper.getFormatter(1);
 
       setBounds(100, 100, 655, 214);
       getContentPane().setLayout(new BorderLayout());
@@ -222,7 +223,6 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
             gbc_lblErgebnis.gridy = 1;
             panel.add(lblErgebnis, gbc_lblErgebnis);
          }
-
       }
       {
          JPanel buttonPane = new JPanel();
@@ -230,74 +230,18 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
          getContentPane().add(buttonPane, BorderLayout.SOUTH);
          {
             JButton okButton = new JButton("OK");
-            okButton.setActionCommand("OK");
             okButton.addActionListener(new ActionListener() {
 
                @Override
                public void actionPerformed(ActionEvent e) {
-                  try {
-                     try {
-                        if(txtKari1.getText().isEmpty())
-                           wertung.setKari1(0);
-                        else
-                           wertung.setKari1(formatter.parse(txtKari1.getText()).doubleValue());
-                     } catch (ParseException e1) {
-                        markAsError(txtKari1);
-                        throw e1;
-                     }
-
-                     try {
-                        if(txtKari2.getText().isEmpty())
-                           wertung.setKari2(0);
-                        else
-                           wertung.setKari2(formatter.parse(txtKari2.getText()).doubleValue());
-                     } catch (ParseException e1) {
-                        markAsError(txtKari2);
-                        throw e1;
-                     }
-                     try {
-
-                        if(txtKari3.getText().isEmpty())
-                           wertung.setKari3(0);
-                        else
-                           wertung.setKari3(formatter.parse(txtKari3.getText()).doubleValue());
-                     } catch (ParseException e1) {
-                        markAsError(txtKari3);
-                        throw e1;
-                     }
-                     try {
-
-                        if(txtKari4.getText().isEmpty())
-                           wertung.setKari4(0);
-                        else
-                           wertung.setKari4(formatter.parse(txtKari4.getText()).doubleValue());
-                     } catch (ParseException e1) {
-                        markAsError(txtKari4);
-                        throw e1;
-                     }
-                     try {
-
-                        if(txtKari5.getText().isEmpty())
-                           wertung.setKari5(0);
-                        else
-                           wertung.setKari5(formatter.parse(txtKari5.getText()).doubleValue());
-                     } catch (ParseException e1) {
-                        markAsError(txtKari5);
-                        throw e1;
-                     }
-
-                     setVisible(false);
-                  } catch (ParseException e1) {
-                     e1.printStackTrace();
-                  }
+                  setVisible(false);
                }
             });
             buttonPane.add(okButton);
             getRootPane().setDefaultButton(okButton);
          }
          {
-            JButton cancelButton = new JButton("Cancel");
-            cancelButton.setActionCommand("Cancel");
+            JButton cancelButton = new JButton("Abbrechen");
             cancelButton.addActionListener(new ActionListener() {
 
                @Override
@@ -314,6 +258,8 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
             buttonPane.add(cancelButton);
          }
       }
+      
+      txtKari1.requestFocusInWindow();
    }
 
    private void markAsError(JTextField field) {
@@ -347,36 +293,36 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
       if(wertung.getKari1()<=0)
          txtKari1.setText("");
       else
-         txtKari1.setText(formatter.format(wertung.getKari1()));
+         txtKari1.setText(converter.format(wertung.getKari1()));
 
       if(wertung.getKari2()<=0)
          txtKari2.setText("");
       else
-         txtKari2.setText(formatter.format(wertung.getKari2()));
+         txtKari2.setText(converter.format(wertung.getKari2()));
 
       if(wertung.getKari3()<=0)
          txtKari3.setText("");
       else
-         txtKari3.setText(formatter.format(wertung.getKari3()));
+         txtKari3.setText(converter.format(wertung.getKari3()));
       
       if(wertung.getKari4()<=0)
          txtKari4.setText("");
       else
-         txtKari4.setText(formatter.format(wertung.getKari4()));
+         txtKari4.setText(converter.format(wertung.getKari4()));
       if(wertung.getKari5()<=0)
          txtKari5.setText("");
       else
-         txtKari5.setText(formatter.format(wertung.getKari5()));
+         txtKari5.setText(converter.format(wertung.getKari5()));
 
       if(wertung.getSchwierigkeit()<=0)
          txtDiff.setText("");
       else
-         txtDiff.setText(formatter.format(wertung.getSchwierigkeit()));
+         txtDiff.setText(converter.format(wertung.getSchwierigkeit()));
 
       if(wertung.getErgebnis()<=0)
-         lblErgebnis.setText(formatter.format(0));
+         lblErgebnis.setText(converter.format(0));
       else
-         lblErgebnis.setText(formatter.format(wertung.getErgebnis()));
+         lblErgebnis.setText(converter.format(wertung.getErgebnis()));
       
       txtKari1.requestFocus();
    }
@@ -386,44 +332,39 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
       private JTextField field;
       private int kari;
 
-      /**
-       * 
-       */
       public DecimalFocusListener(JTextField field, int kari) {
+         
          this.field = field;
          this.kari = kari;
       }
       
       @Override
       public void focusLost(FocusEvent e) {
-         if(! field.getText().isEmpty()) {
-
+         
             try {
-               Number number = formatter.parse(field.getText());
                
-               if(number.doubleValue()*10%10==0){
-                  number = Double.valueOf(number.doubleValue()/10);
-                  field.setText(formatter.format(number.doubleValue()));
-               }
+               double number = converter.convert(field.getText());
+               field.setText(converter.format(number));
                
                switch (kari) {
                   case 1:
-                     wertung.setKari1(number.doubleValue());
+                     wertung.setKari1(number);
                      break;
                   case 2:
-                     wertung.setKari2(number.doubleValue());
+                     wertung.setKari2(number);
                      break;
                   case 3:
-                     wertung.setKari3(number.doubleValue());
+                     wertung.setKari3(number);
                      break;
                   case 4:
-                     wertung.setKari4(number.doubleValue());
+                     wertung.setKari4(number);
                      break;
                   case 5:
-                     wertung.setKari5(number.doubleValue());
+                     wertung.setKari5(number);
                      break;
+                  case 6:
                   case 7:
-                     wertung.setSchwierigkeit(number.doubleValue());
+                     wertung.setSchwierigkeit(number);
                      break;
                   default:
                      break;
@@ -433,8 +374,9 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
                markAsError(field);
                e1.printStackTrace();
             }
-         }
-         lblErgebnis.setText(formatter.format(wertung.getErgebnis()));
+         
+         
+         lblErgebnis.setText(converter.format(wertung.getErgebnis()));
       }
    }
 

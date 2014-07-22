@@ -3,9 +3,7 @@ package de.kreth.vereinsmeisterschaftprog.business;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import de.kreth.vereinsmeisterschaftprog.Factory;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
@@ -21,22 +19,29 @@ public class MainFrameBusiness {
    Map<Pflichten,Wettkampf> wettkaempfe;
    private WettkampfBusiness wettkampfBusiness;
    private Pflichten pflicht;
+   private List<Pflichten> pflichten;
    private Persister persister;
    
    public MainFrameBusiness() {
       wettkaempfe = new HashMap<Pflichten, Wettkampf>();
 
       persister = Factory.getInstance().getPersister();
-      pflicht = Pflichten.values()[0];
+      pflichten = persister.loadPflichten();
       
-      for(Pflichten p: Pflichten.values()){
-         Wettkampf wettkampf = new Wettkampf(p.name(), p);
+      pflicht = pflichten.get(0);
+      
+      for(Pflichten p: pflichten){
+         Wettkampf wettkampf = new Wettkampf(p.getName(), p);
          wettkaempfe.put(p, wettkampf);
          persister.fillWithStartern(wettkampf);
       }
       
       wettkampfBusiness = new WettkampfBusiness();
-      wettkampfBusiness.setWettkampf(wettkaempfe.get(Pflichten.P2));
+      wettkampfBusiness.setWettkampf(wettkaempfe.get(pflicht));
+   }
+   
+   public void addPflicht() {
+      
    }
    
    public void pflichtChange(Pflichten p){
@@ -44,13 +49,18 @@ public class MainFrameBusiness {
       wettkampfBusiness.setWettkampf(wettkaempfe.get(p));
    }
 
+   
+   public List<Pflichten> getPflichten() {
+      return pflichten;
+   }
+   
    public WettkampfPanel getPanel() {
       return wettkampfBusiness.getPanel();
    }
 
    public void doExport() {
       Wettkampf wettkampf = wettkaempfe.get(this.pflicht);
-      File file = new File(this.pflicht.name()+ ".csv");
+      File file = new File(this.pflicht.getName()+ ".csv");
       
       if(file.exists())
          file.delete();

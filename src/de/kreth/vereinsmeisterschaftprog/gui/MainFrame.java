@@ -37,8 +37,8 @@ public class MainFrame extends JFrame {
       setContentPane(contentPane);
       
       model = new DefaultListModel<>();
-      
-      for(Pflichten p: Pflichten.values())
+      model.addElement(new Pflichten(-1, "Hinzufügen", "Kein Eintrag! Neu erstellen, wenn gewählt!"));
+      for(Pflichten p: business.getPflichten())
          model.addElement(p);
       
       contentPane.add(business.getPanel(), BorderLayout.CENTER);
@@ -70,7 +70,8 @@ public class MainFrame extends JFrame {
                   
                }
             });
-            pflichtenView.setSelectedIndex(0);
+            
+            pflichtenView.setSelectedIndex(1);  // wirft Exception, wenn noch keine Pflichten eingeeben sind! Hier ändern
       
       JButton btnExport = new JButton("Exportieren");
       btnExport.addActionListener(new ActionListener() {

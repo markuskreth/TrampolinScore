@@ -3,6 +3,7 @@ package de.kreth.vereinsmeisterschaftprog;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.sql.*;
+import java.util.List;
 
 import de.kreth.hsqldbcreator.HsqlCreator;
 import de.kreth.vereinsmeisterschaftprog.data.*;
@@ -124,6 +125,17 @@ class PersisterProductive implements Persister {
       }
 
       return result;
+   }
+
+   @Override
+   public Pflichten createPflicht(String name) {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   public List<Pflichten> loadPflichten() {
+      return null;
    }
 
    private class PersisterErgebnisChangeListener implements PropertyChangeListener {
