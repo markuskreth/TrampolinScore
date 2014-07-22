@@ -7,30 +7,36 @@ import java.util.*;
 
 import de.kreth.vereinsmeisterschaftprog.Factory;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
-import de.kreth.vereinsmeisterschaftprog.data.Pflichten;
+import de.kreth.vereinsmeisterschaftprog.data.Gruppe;
 import de.kreth.vereinsmeisterschaftprog.data.Wettkampf;
 import de.kreth.vereinsmeisterschaftprog.db.Persister;
 import de.kreth.vereinsmeisterschaftprog.exporter.CsvExporter;
+import de.kreth.vereinsmeisterschaftprog.gui.MainView;
 import de.kreth.vereinsmeisterschaftprog.gui.WettkampfPanel;
 
 
 public class MainFrameBusiness {
 
-   Map<Pflichten,Wettkampf> wettkaempfe;
+   Map<Gruppe,Wettkampf> wettkaempfe;
    private WettkampfBusiness wettkampfBusiness;
-   private Pflichten pflicht;
-   private List<Pflichten> pflichten;
+   private Gruppe pflicht;
+   private List<Gruppe> gruppen;
    private Persister persister;
+   private MainView view;
    
-   public MainFrameBusiness() {
-      wettkaempfe = new HashMap<Pflichten, Wettkampf>();
+   public MainFrameBusiness(MainView frame) {
+      this.view = frame;
+      wettkaempfe = new HashMap<Gruppe, Wettkampf>();
 
       persister = Factory.getInstance().getPersister();
-      pflichten = persister.loadPflichten();
+      gruppen = persister.loadPflichten();
       
-      pflicht = pflichten.get(0);
+      if(gruppen.size()>0)
+         pflicht = gruppen.get(0);
+      else
+         pflicht = Gruppe.INVALID;
       
-      for(Pflichten p: pflichten){
+      for(Gruppe p: gruppen){
          Wettkampf wettkampf = new Wettkampf(p.getName(), p);
          wettkaempfe.put(p, wettkampf);
          persister.fillWithStartern(wettkampf);
@@ -41,17 +47,20 @@ public class MainFrameBusiness {
    }
    
    public void addPflicht() {
-      
+      view.showNewGruppeDialog();
    }
    
-   public void pflichtChange(Pflichten p){
-      this.pflicht = p;
-      wettkampfBusiness.setWettkampf(wettkaempfe.get(p));
+   public void pflichtChange(Gruppe p){
+      if(p.getId()>=0) {
+         this.pflicht = p;
+         wettkampfBusiness.setWettkampf(wettkaempfe.get(p));
+      } else
+         addPflicht();
    }
 
    
-   public List<Pflichten> getPflichten() {
-      return pflichten;
+   public List<Gruppe> getGruppen() {
+      return gruppen;
    }
    
    public WettkampfPanel getPanel() {
@@ -76,6 +85,11 @@ public class MainFrameBusiness {
       } catch (IOException e) {
          e.printStackTrace();
       }
+   }
+
+   public void createGroup(String groupName, String groupDescription) {
+      Gruppe g = persister.createPflicht(groupName, groupDescription);
+      gruppen.add(g);
    }
    
 }

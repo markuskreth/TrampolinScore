@@ -9,7 +9,7 @@ public class WettkampfTest {
 
    @Test
    public void test() {
-      Wettkampf w = new Wettkampf("Test", new Pflichten(1, "P2", "Gruppe P2"));
+      Wettkampf w = new Wettkampf("Test", new Gruppe(1, "P2", "Gruppe P2"));
       Ergebnis m = new Ergebnis(1,"Markus", w, new Wertung(1, Durchgang.PFLICHT), new Wertung(2, Durchgang.KUER));
       w.add(m);
       Ergebnis j = new Ergebnis(2,"Jasmin", w, new Wertung(3, Durchgang.PFLICHT), new Wertung(4, Durchgang.KUER));

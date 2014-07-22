@@ -71,7 +71,7 @@ public class DatabaseTableCreator {
    };
    
    private String[] version3 = {
-         "CREATE TABLE GRUPPE (id INTEGER IDENTITY, name varchar(255) NOT NULL, beschreibungvarchar(255) NULL)",
+         "CREATE TABLE GRUPPE (id INTEGER IDENTITY, name varchar(255) NOT NULL, beschreibung varchar(255) NULL)",
          "UPDATE version set value=3"
    };
 }

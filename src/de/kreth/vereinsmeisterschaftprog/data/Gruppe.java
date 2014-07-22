@@ -1,7 +1,8 @@
 package de.kreth.vereinsmeisterschaftprog.data;
 
 
-public class Pflichten {
+public class Gruppe {
+   public static final Gruppe INVALID = new Gruppe(-1, "INVALID", "INVALID");
    private long id;
    private String name;
    private String beschreibung;
@@ -12,7 +13,7 @@ public class Pflichten {
     * @param name
     * @param beschreibung  darf null sein
     */
-   public Pflichten(long id, String name, String beschreibung) {
+   public Gruppe(long id, String name, String beschreibung) {
       super();
       this.id = id;
       this.name = name;
@@ -58,7 +59,7 @@ public class Pflichten {
          return false;
       if (getClass() != obj.getClass())
          return false;
-      Pflichten other = (Pflichten) obj;
+      Gruppe other = (Gruppe) obj;
       if (beschreibung == null) {
          if (other.beschreibung != null)
             return false;

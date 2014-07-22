@@ -3,6 +3,7 @@ package de.kreth.vereinsmeisterschaftprog;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.kreth.hsqldbcreator.HsqlCreator;
@@ -23,7 +24,7 @@ class PersisterProductive implements Persister {
    @Override
    public void fillWithStartern(Wettkampf wk) {
       try {
-         ResultSet rs = hsql.executeQuery("SELECT * from ergebnis where wettkampf='" + wk.getFilter() + "'");
+         ResultSet rs = hsql.executeQuery("SELECT * from ergebnis where wettkampf='" + wk.getGruppe() + "'");
          while (rs.next()) {
             int id = rs.getInt("id");
             String starterName = rs.getString("startername");
@@ -110,7 +111,7 @@ class PersisterProductive implements Persister {
          if (pflicht == null || kuer == null)
             throw new IllegalStateException("Db-Fehler! Konnte Pflicht oder Kür nicht anlegen! Pflicht=" + pflicht + " Kür=" + kuer);
 
-         hsql.executeUpdate("INSERT INTO ergebnis (startername, wettkampf, pflicht, kuer) " + "VALUES('" + starterName + "', '" + wettkampf.getFilter() + "', " + pflicht.getId()
+         hsql.executeUpdate("INSERT INTO ergebnis (startername, wettkampf, pflicht, kuer) " + "VALUES('" + starterName + "', '" + wettkampf.getGruppe() + "', " + pflicht.getId()
                + ", " + kuer.getId() + ")", Statement.RETURN_GENERATED_KEYS);
          generatedKeys = hsql.getGeneratedKeys();
 
@@ -128,14 +129,39 @@ class PersisterProductive implements Persister {
    }
 
    @Override
-   public Pflichten createPflicht(String name) {
-      // TODO Auto-generated method stub
-      return null;
+   public Gruppe createPflicht(String name, String Beschreibung) {
+      Gruppe result = Gruppe.INVALID;
+      try {
+         hsql.executeUpdate("INSERT INTO GRUPPE (NAME, BESCHREIBUNG) VALUES('" + name + "','" + Beschreibung + "')", Statement.RETURN_GENERATED_KEYS);
+
+         ResultSet generatedKeys = hsql.getGeneratedKeys();
+         if (generatedKeys.next()) {
+            int id = generatedKeys.getInt(1);
+            result = new Gruppe(id, name, Beschreibung);
+         }
+      } catch (SQLException e) {
+         e.printStackTrace();
+      }
+      return result;
    }
 
    @Override
-   public List<Pflichten> loadPflichten() {
-      return null;
+   public List<Gruppe> loadPflichten() {
+      List<Gruppe> result = new ArrayList<>();
+      String sql = "SELECT * FROM GRUPPE";
+      try {
+         ResultSet rs = hsql.executeQuery(sql);
+         while(rs.next()) {
+            int id = rs.getInt("ID");
+            String name = rs.getString("NAME");
+            String beschreibung = rs.getString("BESCHREIBUNG");
+            result.add(new Gruppe(id, name, beschreibung));
+         }
+      } catch (SQLException e) {
+         e.printStackTrace();
+      }
+      
+      return result;
    }
 
    private class PersisterErgebnisChangeListener implements PropertyChangeListener {

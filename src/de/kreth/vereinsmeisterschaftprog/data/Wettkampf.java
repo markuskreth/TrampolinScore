@@ -13,15 +13,15 @@ public class Wettkampf implements PlatzCalculator, PropertyChangeListener {
    public static final String PLAETZE_CHANGE_PROPERTY = Wettkampf.class.getName() + " Plätze geändert!";
 
    private String name;
-   private Pflichten filter;
+   private Gruppe gruppe;
    private List<Ergebnis> ergebnisse;
    private Map<Ergebnis, Integer> plaetze;
    private PropertyChangeSupport pcs;
    
-   public Wettkampf(String name, Pflichten filter) {
+   public Wettkampf(String name, Gruppe gruppe) {
       super();
       this.name = name;
-      this.filter = filter;
+      this.gruppe = gruppe;
       ergebnisse = new ArrayList<>();
       plaetze = new HashMap<>();
       this.pcs = new PropertyChangeSupport(this);
@@ -31,8 +31,8 @@ public class Wettkampf implements PlatzCalculator, PropertyChangeListener {
       return name;
    }
    
-   public Pflichten getFilter() {
-      return filter;
+   public Gruppe getGruppe() {
+      return gruppe;
    }
       
    public int size() {

@@ -94,8 +94,14 @@ public class WettkampfPanel extends JPanel {
    public void setWettkampf(Wettkampf wettkampf) {
 
       tableModel.removeAllElements();
-      for (Ergebnis e : wettkampf.getErgebnisse())
-         tableModel.addElement(e);
+      
+      if(wettkampf != null) {
+         
+         for (Ergebnis e : wettkampf.getErgebnisse()) {
+            tableModel.addElement(e);
+         }
+         
+      }
    }
 
    private class ButtonRenderer implements TableCellRenderer {
