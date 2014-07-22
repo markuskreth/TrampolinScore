@@ -10,7 +10,6 @@ import java.text.ParseException;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
-import de.kreth.trampolinbusiness.DecimalFormatHelper;
 import de.kreth.vereinsmeisterschaftprog.business.WettkampfBusiness;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
@@ -378,6 +377,8 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
          lblErgebnis.setText(formatter.format(0));
       else
          lblErgebnis.setText(formatter.format(wertung.getErgebnis()));
+      
+      txtKari1.requestFocus();
    }
    
    private class DecimalFocusListener extends FocusAdapter {
