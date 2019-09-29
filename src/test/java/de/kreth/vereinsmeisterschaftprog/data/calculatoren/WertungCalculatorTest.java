@@ -8,127 +8,134 @@ import org.junit.Test;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
-
 public class WertungCalculatorTest {
 
-   private WertungCalculatorFor5Values calc5;
-   private WertungCalculatorFor4Values calc4;
-   private WertungCalculatorFor3Values calc3;
+	private WertungCalculatorFor2ValuesHd calc2;
 
-   @Before
-   public void setUp() {
-      calc5 = new WertungCalculatorFor5Values();
-      calc4 = new WertungCalculatorFor4Values();
-      calc3 = new WertungCalculatorFor3Values();
+	private WertungCalculatorFor4ValuesHd calc4;
 
-   }
-   
-   @Test
-   public void testKrummeWerte() {
+	private WertungCalculatorFor3ValuesHd calc3;
 
-      Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
-      pflicht.setKari1(5.8);
-      pflicht.setKari2(5.7);
-      pflicht.setKari3(5.6);
-      pflicht.setKari4(5.7);
-      pflicht.setKari5(5.5);
+	@Before
+	public void setUp() {
+		calc2 = new WertungCalculatorFor2ValuesHd();
+		calc4 = new WertungCalculatorFor4ValuesHd();
+		calc3 = new WertungCalculatorFor3ValuesHd();
 
-      double erg = calc5.calculate(pflicht);
-      assertEquals(17.0, erg, 0.001);
-   }
-   
-   @Test
-   public void testCalculate5er() {
+	}
 
-      Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
-      pflicht.setKari1(7.1);
-      pflicht.setKari2(7.2);
-      pflicht.setKari3(7.3);
-      pflicht.setKari4(7.4);
-      pflicht.setKari5(7.5);
+	@Test
+	public void testKrummeWerte() {
 
-      Wertung kuer = new Wertung(1, Durchgang.KUER);
-      kuer.setKari1(7.1);
-      kuer.setKari2(7.2);
-      kuer.setKari3(7.3);
-      kuer.setKari4(7.4);
-      kuer.setKari5(7.5);
-      kuer.setSchwierigkeit(20.5);
-      
-      double erg = calc5.calculate(pflicht);
-      assertEquals(21.9, erg, 0.000000001);
-      
-      erg = calc5.calculate(kuer);
-      assertEquals(42.4, erg, 0.000000001);
+		Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
+		pflicht.setKari1(5.8);
+		pflicht.setKari2(5.7);
+		pflicht.setKari3(5.6);
+		pflicht.setKari4(5.7);
+		pflicht.setHd1(7.3);
+		pflicht.setHd2(7.8);
 
-      erg = WertungCalculatorFactory.calculate(kuer);
-      assertEquals(42.4, erg, 0.000000001);
-   }
+		double erg = calc4.calculate(pflicht);
+		assertEquals(18.95, erg, 0.001);
+	}
 
-   @Test
-   public void testCalculate3er() {
+	@Test
+	public void testCalculateCompleteJudges() {
 
-      Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
-      pflicht.setKari1(7.1);
-      pflicht.setKari3(7.3);
-      pflicht.setKari5(7.4);
+		Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
+		pflicht.setKari1(7.1);
+		pflicht.setKari2(7.2);
+		pflicht.setKari3(7.3);
+		pflicht.setKari4(7.4);
+		pflicht.setHd1(8.7);
+		pflicht.setHd2(9.5);
 
-      Wertung kuer = new Wertung(1, Durchgang.KUER);
-      kuer.setKari1(7.1);
-      kuer.setKari3(7.3);
-      kuer.setKari5(7.4);
-      kuer.setSchwierigkeit(20.5);
+		Wertung kuer = new Wertung(1, Durchgang.KUER);
+		kuer.setKari1(7.1);
+		kuer.setKari2(7.2);
+		kuer.setKari3(7.3);
+		kuer.setKari4(7.4);
+		kuer.setHd1(8.7);
+		kuer.setHd2(9.5);
+		kuer.setSchwierigkeit(20.5);
 
-      double erg = calc3.calculate(pflicht);
-      assertEquals(21.8, erg, 0.000000001);
+		double erg = calc4.calculate(pflicht);
+		assertEquals(23.6, erg, 0.01);
 
-      erg = calc3.calculate(kuer);
-      assertEquals(42.3, erg, 0.000000001);
+		erg = calc4.calculate(kuer);
+		assertEquals(44.1, erg, 0.001);
 
-      kuer.setKari5(8.4);
-      erg = calc3.calculate(kuer);
-      assertEquals(43.3, erg, 0.000000001);
-      
-      pflicht.setKari1(7.1);
-      pflicht.setKari3(0);
-      pflicht.setKari4(7.7);
-      pflicht.setKari5(7.4);
-      erg = calc3.calculate(pflicht);
-      assertEquals(22.2, erg, 0.000000001);
-      
-      erg = WertungCalculatorFactory.calculate(pflicht);
-      assertEquals(22.2, erg, 0.000000001);
+		erg = WertungCalculatorFactory.calculate(kuer);
+		assertEquals(44.1, erg, 0.001);
+	}
 
-   }
+	@Test
+	public void testCalculate3er() {
 
-   @Test
-   public void testCalculate4er() {
+		Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
+		pflicht.setKari1(7.1);
+		pflicht.setKari2(7.2);
+		pflicht.setKari3(7.3);
+		pflicht.setHd1(8.4);
 
-      Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
-      pflicht.setKari1(7.1);
-      pflicht.setKari2(7.3);
-      pflicht.setKari4(7.4);
-      pflicht.setKari5(7.4);
+		double erg = calc3.calculate(pflicht);
+		assertEquals(22.8, erg, 0.000000001);
 
-      Wertung kuer = new Wertung(1, Durchgang.KUER);
-      kuer.setKari1(7.1);
-      kuer.setKari3(7.7);
-      kuer.setKari4(7.3);
-      kuer.setKari5(7.4);
-      kuer.setSchwierigkeit(20.5);
+		Wertung kuer = new Wertung(1, Durchgang.KUER);
+		kuer.setKari1(7.1);
+		kuer.setKari3(7.2);
+		kuer.setKari4(7.3);
+		kuer.setHd1(9.3);
+		kuer.setSchwierigkeit(20.5);
 
-      double erg = calc4.calculate(pflicht);
-      assertEquals(21.9, erg, 0.000000001);
+		erg = calc3.calculate(kuer);
+		assertEquals(44.2, erg, 0.000000001);
 
-      erg = calc4.calculate(kuer);
-      assertEquals(42.625, erg, 0.000000001);
+		kuer.setHd1(8.3);
+		erg = calc3.calculate(kuer);
+		assertEquals(43.2, erg, 0.000000001);
 
-      kuer.setKari5(8.4);
-      erg = calc4.calculate(kuer);
-      assertEquals(43.375, erg, 0.000000001);
-      
-      erg = WertungCalculatorFactory.calculate(kuer);
-      assertEquals(43.375, erg, 0.000000001);
-   }
-   
+		pflicht = new Wertung(1, Durchgang.PFLICHT);
+		pflicht.setKari1(7.1);
+		pflicht.setKari2(7.2);
+		pflicht.setKari4(7.7);
+		pflicht.setHd1(8.4);
+
+		erg = calc3.calculate(pflicht);
+		assertEquals(23.067, erg, 0.001);
+
+		erg = WertungCalculatorFactory.calculate(pflicht);
+		assertEquals(23.067, erg, 0.001);
+
+	}
+
+	@Test
+	public void testCalculate2er() {
+
+		Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
+		pflicht.setKari1(7.1);
+		pflicht.setKari4(7.4);
+		pflicht.setHd1(8.7);
+
+		Wertung kuer = new Wertung(1, Durchgang.KUER);
+		kuer.setKari1(7.1);
+		kuer.setKari3(7.7);
+		kuer.setHd2(8.8);
+		kuer.setSchwierigkeit(20.5);
+
+		double erg = calc2.calculate(pflicht);
+		assertEquals(23.2, erg, 0.000000001);
+
+		erg = calc2.calculate(kuer);
+		assertEquals(44.1, erg, 0.000000001);
+
+		kuer.setKari3(0);
+		kuer.setKari4(7.7);
+		erg = calc2.calculate(kuer);
+		assertEquals(44.1, erg, 0.000000001);
+
+		erg = WertungCalculatorFactory.calculate(kuer);
+		assertEquals(44.1, erg, 0.000000001);
+	}
+
 }
