@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
-public class WertungCalculatorFor2ValuesHd implements WertungCalcularor {
+public class WertungCalculatorFor2ValuesHd implements WertungCalcularor<Wertung> {
 
 	@Override
 	public double calculate(Wertung wertung) {

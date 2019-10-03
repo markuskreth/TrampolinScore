@@ -6,7 +6,7 @@ import java.util.List;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
-public class WertungCalculatorFor4ValuesHd implements WertungCalcularor {
+public class WertungCalculatorFor4ValuesHd implements WertungCalcularor<Wertung> {
 
 	@Override
 	public double calculate(Wertung wertung) {

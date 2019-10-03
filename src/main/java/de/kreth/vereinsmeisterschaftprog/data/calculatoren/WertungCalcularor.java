@@ -6,15 +6,15 @@ import java.util.function.BiFunction;
 
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
-interface WertungCalcularor {
+interface WertungCalcularor<T extends Wertung> {
 	/**
 	 * Liefert zu den Werten in wertung das entprechende Ergebnis
 	 * @param wertung Daten, aus denen das Ergebnis errechnet werden soll.
 	 * @return Ergebnis
 	 */
-	double calculate(Wertung wertung);
+	double calculate(T wertung);
 
-	static BigDecimal calculateHd(Wertung wertung) {
+	static <T extends Wertung> BigDecimal calculateHd(T wertung) {
 		BigDecimal result = BigDecimal.ZERO;
 
 		if (wertung.getHd1() > 0) {

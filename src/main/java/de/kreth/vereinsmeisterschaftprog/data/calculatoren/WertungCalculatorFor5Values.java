@@ -3,12 +3,12 @@ package de.kreth.vereinsmeisterschaftprog.data.calculatoren;
 import java.math.BigDecimal;
 
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
-import de.kreth.vereinsmeisterschaftprog.data.Wertung;
+import de.kreth.vereinsmeisterschaftprog.data.WertungOld;
 
-public class WertungCalculatorFor5Values implements WertungCalcularor {
+public class WertungCalculatorFor5Values implements WertungCalcularor<WertungOld> {
 
 	@Override
-	public double calculate(Wertung wertung) {
+	public double calculate(WertungOld wertung) {
 
 		BigDecimal result = BigDecimal.valueOf(wertung.getKari1());
 		BigDecimal min = BigDecimal.valueOf(wertung.getKari1());
@@ -17,8 +17,8 @@ public class WertungCalculatorFor5Values implements WertungCalcularor {
 		result = result
 				.add(BigDecimal.valueOf(wertung.getKari2()))
 				.add(BigDecimal.valueOf(wertung.getKari3()))
-				.add(BigDecimal.valueOf(wertung.getKari4()));
-//            .add(BigDecimal.valueOf(wertung.getKari5()));
+				.add(BigDecimal.valueOf(wertung.getKari4()))
+				.add(BigDecimal.valueOf(wertung.getKari5()));
 
 		if (wertung.getKari2() > max.doubleValue())
 			max = BigDecimal.valueOf(wertung.getKari2());

@@ -55,6 +55,10 @@ public class Wertung implements Cloneable {
 	@Override
 	public Wertung clone() {
 		Wertung clone = new Wertung(id, durchgang);
+		return clone(clone);
+	}
+
+	protected Wertung clone(Wertung clone) {
 		clone.kari1 = kari1;
 		clone.kari2 = kari2;
 		clone.kari3 = kari3;

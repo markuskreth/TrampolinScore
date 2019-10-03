@@ -6,7 +6,7 @@ import java.math.RoundingMode;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
-class WertungCalculatorFor3ValuesHd implements WertungCalcularor {
+class WertungCalculatorFor3ValuesHd implements WertungCalcularor<Wertung> {
 
 	@Override
 	public double calculate(Wertung wertung) {
