@@ -173,7 +173,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 			for (Value v : wertung.allValues()) {
 				JFormattedTextField txtKari = new JFormattedTextField(df);
 				txtKari.setName(v.identifier());
-				new JTextField().putClientProperty(Value.class, v);
+				txtKari.putClientProperty(Value.class, v);
 				GridBagConstraints gbc_txtKari1 = new GridBagConstraints();
 				gbc_txtKari1.fill = GridBagConstraints.HORIZONTAL;
 				gbc_txtKari1.insets = new Insets(0, 0, 5, 5);

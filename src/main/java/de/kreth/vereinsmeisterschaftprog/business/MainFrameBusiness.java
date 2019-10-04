@@ -64,8 +64,18 @@ public class MainFrameBusiness {
 			this.currentGruppe = p;
 			wettkampfBusiness.setWettkampf(wettkaempfe.get(p));
 		}
-		else
-			addPflicht();
+		else {
+			if (gruppen.isEmpty()) {
+				while (gruppen.isEmpty()) {
+					addPflicht();
+				}
+			}
+			else {
+				addPflicht();
+			}
+			currentGruppe = gruppen.get(0);
+			wettkampfBusiness.setWettkampf(wettkaempfe.get(currentGruppe));
+		}
 	}
 
 	public List<Gruppe> getGruppen() {

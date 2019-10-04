@@ -75,7 +75,7 @@ class PersisterProductive implements Persister {
 
 	@SuppressWarnings("unchecked")
 	private void fillValues(Wertung w) throws SQLException {
-		ResultSet rs = hsql.executeQuery("SELECT * FROM VALUE WHERE id=" + w.getId());
+		ResultSet rs = hsql.executeQuery("SELECT * FROM VALUE WHERE wertung=" + w.getId());
 		List<Value> werte;
 		try {
 			Field valueField = Wertung.class.getDeclaredField("werte");

@@ -75,14 +75,36 @@ public class MainFrame extends JFrame implements MainView {
 
 		pflichtenView.addListSelectionListener(new ListSelectionListener() {
 
+			private int lastIndex;
+
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 
 				if (!e.getValueIsAdjusting()) {
 
+					int currentIndex = pflichtenView.getSelectedIndex();
+					if (currentIndex < 0 || currentIndex == lastIndex && lastIndex > 0) {
+						return;
+					}
+					if (currentIndex > 0) {
+						lastIndex = currentIndex;
+					}
 					Gruppe selection = pflichtenView.getSelectedValue();
-					if (selection != null)
+					if (selection != null) {
 						business.pflichtChange(selection);
+						if (lastIndex <= 0) {
+							pflichtenView.setSelectedValue(business.getGruppen().get(0), false);
+						}
+						else {
+							pflichtenView.setSelectedIndex(lastIndex);
+						}
+					}
+					else {
+
+						if (lastIndex <= 0) {
+							pflichtenView.setSelectedValue(business.getGruppen().get(0), false);
+						}
+					}
 				}
 
 			}

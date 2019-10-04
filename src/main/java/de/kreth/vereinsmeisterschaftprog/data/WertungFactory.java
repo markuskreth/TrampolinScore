@@ -6,7 +6,7 @@ import java.util.List;
 
 public class WertungFactory {
 
-	private int anzahlHaltung = 2;
+	private int anzahlHaltung = 4;
 
 	private int anzahlHd = 1;
 

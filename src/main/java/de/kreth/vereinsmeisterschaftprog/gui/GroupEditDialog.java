@@ -10,6 +10,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 public class GroupEditDialog {
 
@@ -46,6 +47,8 @@ public class GroupEditDialog {
 		dlg.setModalityType(ModalityType.APPLICATION_MODAL);
 		dlg.setContentPane(content);
 		dlg.pack();
+
+		SwingUtilities.getRootPane(okButton).setDefaultButton(okButton);
 	}
 
 	private void okPressed(ActionEvent ev) {

@@ -123,6 +123,7 @@ public class WettkampfPanel extends JPanel {
 			}
 
 		}
+		tableModel.sort();
 	}
 
 	private class ButtonRenderer implements TableCellRenderer {
@@ -191,6 +192,10 @@ public class WettkampfPanel extends JPanel {
 
 		public void setSortierung(Sortierung sort) {
 			comperator.setSortierung(sort);
+			sort();
+		}
+
+		private void sort() {
 			Collections.sort(data, comperator);
 			fireTableDataChanged();
 		}
