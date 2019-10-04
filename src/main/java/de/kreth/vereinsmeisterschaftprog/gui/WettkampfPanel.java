@@ -42,7 +42,7 @@ public class WettkampfPanel extends JPanel {
 
 	private JTable table;
 
-	private MyTableModel tableModel;
+	private ErgebnisTableModel tableModel;
 
 	final JComboBox<Durchgang> comboBox_Durchgang = new JComboBox<>();
 
@@ -90,7 +90,7 @@ public class WettkampfPanel extends JPanel {
 		});
 
 		panel.add(comboBox);
-		tableModel = new MyTableModel();
+		tableModel = new ErgebnisTableModel();
 		table = new JTable();
 		table.setModel(tableModel);
 
@@ -176,7 +176,7 @@ public class WettkampfPanel extends JPanel {
 
 	}
 
-	private class MyTableModel extends AbstractTableModel {
+	private class ErgebnisTableModel extends AbstractTableModel {
 
 		private static final long serialVersionUID = 2910124315519583475L;
 
