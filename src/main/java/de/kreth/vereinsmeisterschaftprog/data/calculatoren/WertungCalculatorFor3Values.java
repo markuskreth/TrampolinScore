@@ -2,34 +2,18 @@ package de.kreth.vereinsmeisterschaftprog.data.calculatoren;
 
 import java.math.BigDecimal;
 
-import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
-import de.kreth.vereinsmeisterschaftprog.data.WertungOld;
+import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
-class WertungCalculatorFor3Values implements WertungCalcularor<WertungOld> {
+class WertungCalculatorFor3Values extends AbstractWertungCalcularor {
 
 	@Override
-	public double calculate(WertungOld wertung) {
-		BigDecimal result = BigDecimal.ZERO;
+	public BigDecimal calculate(Wertung wertung) {
 
-		if (wertung.getKari1() > 0)
-			result = result.add(BigDecimal.valueOf(wertung.getKari1()));
+		BigDecimal result = sumAllHaltung(wertung);
 
-		if (wertung.getKari2() > 0)
-			result = result.add(BigDecimal.valueOf(wertung.getKari2()));
+		result = addDifficulty(wertung, result);
 
-		if (wertung.getKari3() > 0)
-			result = result.add(BigDecimal.valueOf(wertung.getKari3()));
-
-		if (wertung.getKari4() > 0)
-			result = result.add(BigDecimal.valueOf(wertung.getKari4()));
-
-		if (wertung.getKari5() > 0)
-			result = result.add(BigDecimal.valueOf(wertung.getKari5()));
-
-		if (wertung.getDurchgang() == Durchgang.KUER)
-			result = result.add(BigDecimal.valueOf(wertung.getSchwierigkeit()));
-
-		return result.doubleValue();
+		return result;
 	}
 
 }

@@ -16,6 +16,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -30,6 +31,8 @@ import de.kreth.vereinsmeisterschaftprog.business.InputConverter;
 import de.kreth.vereinsmeisterschaftprog.business.WettkampfBusiness;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
+import de.kreth.vereinsmeisterschaftprog.data.Value;
+import de.kreth.vereinsmeisterschaftprog.data.ValueType;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
 public class WertenDialog extends JDialog implements PropertyChangeListener {
@@ -40,19 +43,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
 	private InputConverter converter = new InputConverter();
 
-	private JFormattedTextField txtKari1;
-
-	private JFormattedTextField txtKari2;
-
-	private JFormattedTextField txtKari3;
-
-	private JFormattedTextField txtKari4;
-
-	private JFormattedTextField txtHd1;
-
-	private JFormattedTextField txtHd2;
-
-	private JFormattedTextField txtDiff;
+	private List<JFormattedTextField> valueFields;
 
 	private JLabel lblStarter;
 
@@ -173,84 +164,22 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 				gbc_lblErgebnis_2.gridy = 0;
 				panel.add(lblErgebnis_2, gbc_lblErgebnis_2);
 			}
-			{
-				txtKari1 = new JFormattedTextField(df);
+			int gridx = 0;
+			for (Value v : wertung.allValues()) {
+				JFormattedTextField txtKari = new JFormattedTextField(df);
+				txtKari.setName(v.identifier());
+				new JTextField().putClientProperty(Value.class, v);
 				GridBagConstraints gbc_txtKari1 = new GridBagConstraints();
 				gbc_txtKari1.fill = GridBagConstraints.HORIZONTAL;
 				gbc_txtKari1.insets = new Insets(0, 0, 5, 5);
-				gbc_txtKari1.gridx = 0;
+				gbc_txtKari1.gridx = gridx;
 				gbc_txtKari1.gridy = 1;
-				panel.add(txtKari1, gbc_txtKari1);
-				txtKari1.setText("1");
-				txtKari1.addFocusListener(new DecimalFocusListener(txtKari1, 1));
-				txtKari1.setColumns(10);
-			}
-			{
-				txtKari2 = new JFormattedTextField(df);
-				txtKari2.setText("11");
-				txtKari2.addFocusListener(new DecimalFocusListener(txtKari2, 2));
-				GridBagConstraints gbc_txtKari2 = new GridBagConstraints();
-				gbc_txtKari2.fill = GridBagConstraints.HORIZONTAL;
-				gbc_txtKari2.insets = new Insets(0, 0, 5, 5);
-				gbc_txtKari2.gridx = 1;
-				gbc_txtKari2.gridy = 1;
-				panel.add(txtKari2, gbc_txtKari2);
-				txtKari2.setColumns(10);
-			}
-			{
-				txtKari3 = new JFormattedTextField(df);
-				txtKari3.addFocusListener(new DecimalFocusListener(txtKari3, 3));
-				GridBagConstraints gbc_txtKari3 = new GridBagConstraints();
-				gbc_txtKari3.fill = GridBagConstraints.HORIZONTAL;
-				gbc_txtKari3.insets = new Insets(0, 0, 5, 5);
-				gbc_txtKari3.gridx = 2;
-				gbc_txtKari3.gridy = 1;
-				panel.add(txtKari3, gbc_txtKari3);
-				txtKari3.setColumns(10);
-			}
-			{
-				txtKari4 = new JFormattedTextField(df);
-				txtKari4.addFocusListener(new DecimalFocusListener(txtKari4, 4));
-				GridBagConstraints gbc_txtKari4 = new GridBagConstraints();
-				gbc_txtKari4.fill = GridBagConstraints.HORIZONTAL;
-				gbc_txtKari4.insets = new Insets(0, 0, 5, 5);
-				gbc_txtKari4.gridx = 3;
-				gbc_txtKari4.gridy = 1;
-				panel.add(txtKari4, gbc_txtKari4);
-				txtKari4.setColumns(10);
-			}
-			{
-				txtHd1 = new JFormattedTextField(df);
-				txtHd1.addFocusListener(new DecimalFocusListener(txtHd1, 5));
-				GridBagConstraints gbc_txtKari5 = new GridBagConstraints();
-				gbc_txtKari5.fill = GridBagConstraints.HORIZONTAL;
-				gbc_txtKari5.insets = new Insets(0, 0, 5, 5);
-				gbc_txtKari5.gridx = 4;
-				gbc_txtKari5.gridy = 1;
-				panel.add(txtHd1, gbc_txtKari5);
-				txtHd1.setColumns(10);
-			}
-			{
-				txtHd2 = new JFormattedTextField(df);
-				txtHd2.addFocusListener(new DecimalFocusListener(txtHd2, 6));
-				GridBagConstraints gbc_txtKari5 = new GridBagConstraints();
-				gbc_txtKari5.fill = GridBagConstraints.HORIZONTAL;
-				gbc_txtKari5.insets = new Insets(0, 0, 5, 5);
-				gbc_txtKari5.gridx = 4;
-				gbc_txtKari5.gridy = 1;
-				panel.add(txtHd2, gbc_txtKari5);
-				txtHd2.setColumns(10);
-			}
-			{
-				txtDiff = new JFormattedTextField(df);
-				txtDiff.addFocusListener(new DecimalFocusListener(txtDiff, 7));
-				GridBagConstraints gbc_txtDiff = new GridBagConstraints();
-				gbc_txtDiff.fill = GridBagConstraints.HORIZONTAL;
-				gbc_txtDiff.insets = new Insets(0, 0, 5, 5);
-				gbc_txtDiff.gridx = 5;
-				gbc_txtDiff.gridy = 1;
-				panel.add(txtDiff, gbc_txtDiff);
-
+				panel.add(txtKari, gbc_txtKari1);
+				txtKari.setText("1");
+				txtKari.addFocusListener(new DecimalFocusListener(txtKari, v));
+				txtKari.setColumns(10);
+				this.valueFields.add(txtKari);
+				gridx++;
 			}
 			{
 				lblErgebnis = new JLabel("90,3");
@@ -286,13 +215,14 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						wertung.setKari1(dummy.getKari1());
-						wertung.setKari2(dummy.getKari2());
-						wertung.setKari3(dummy.getKari3());
-						wertung.setKari4(dummy.getKari4());
-						wertung.setHd1(dummy.getHd1());
-						wertung.setHd2(dummy.getHd2());
-						wertung.setSchwierigkeit(dummy.getSchwierigkeit());
+						for (Value value : WertenDialog.this.wertung.allValues()) {
+							for (Value original : dummy.allValues()) {
+								if (original.identifier().equals(value.identifier())) {
+									value.setValue(original.getValue());
+									break;
+								}
+							}
+						}
 						setVisible(false);
 					}
 				});
@@ -300,7 +230,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 			}
 		}
 
-		txtKari1.requestFocusInWindow();
+		valueFields.get(0).requestFocus();
 	}
 
 	private void markAsError(JTextField field) {
@@ -321,67 +251,44 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
 	private void updateView() {
 
-		this.dummy = wertung.clone();
-
-		if (wertung.getDurchgang() == Durchgang.PFLICHT) {
-			txtDiff.setEnabled(false);
-		}
-		else {
-			txtDiff.setEnabled(true);
-		}
-
 		lblStarter.setText(starterName);
+		this.dummy = wertung.clone();
+		for (JFormattedTextField f : valueFields) {
+			Value v = (Value) f.getClientProperty(Value.class);
+			if (ValueType.SCHWIERIGKEIT.equals(v.getType())) {
 
-		if (wertung.getKari1() <= 0)
-			txtKari1.setText("");
-		else
-			txtKari1.setText(converter.format(wertung.getKari1()));
+				if (wertung.getDurchgang() == Durchgang.PFLICHT) {
+					f.setEnabled(false);
+					f.setText("");
+				}
+				else {
+					f.setEnabled(true);
+				}
+			}
 
-		if (wertung.getKari2() <= 0)
-			txtKari2.setText("");
-		else
-			txtKari2.setText(converter.format(wertung.getKari2()));
+			if (v.getValue().doubleValue() <= 0) {
+				f.setText("");
+			}
+			else {
+				f.setText(converter.format(v.getValue().doubleValue()));
+			}
+		}
 
-		if (wertung.getKari3() <= 0)
-			txtKari3.setText("");
-		else
-			txtKari3.setText(converter.format(wertung.getKari3()));
-
-		if (wertung.getKari4() <= 0)
-			txtKari4.setText("");
-		else
-			txtKari4.setText(converter.format(wertung.getKari4()));
-
-		if (wertung.getHd1() <= 0)
-			txtHd1.setText("");
-		else
-			txtHd1.setText(converter.format(wertung.getHd1()));
-
-		if (wertung.getHd2() <= 0)
-			txtHd2.setText("");
-		else
-			txtHd2.setText(converter.format(wertung.getHd2()));
-
-		if (wertung.getSchwierigkeit() <= 0)
-			txtDiff.setText("");
-		else
-			txtDiff.setText(converter.format(wertung.getSchwierigkeit()));
-
-		if (wertung.getErgebnis() <= 0)
+		if (wertung.getErgebnis().doubleValue() <= 0)
 			lblErgebnis.setText(converter.format(0));
 		else
-			lblErgebnis.setText(converter.format(wertung.getErgebnis()));
+			lblErgebnis.setText(converter.format(wertung.getErgebnis().doubleValue()));
 
-		txtKari1.requestFocus();
+		valueFields.get(0).requestFocus();
 	}
 
 	private class DecimalFocusListener extends FocusAdapter {
 
 		private JTextField field;
 
-		private int kari;
+		private Value kari;
 
-		public DecimalFocusListener(JTextField field, int kari) {
+		public DecimalFocusListener(JTextField field, Value kari) {
 
 			this.field = field;
 			this.kari = kari;
@@ -394,32 +301,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
 				double number = converter.convert(field.getText());
 				field.setText(converter.format(number));
-
-				switch (kari) {
-				case 1:
-					wertung.setKari1(number);
-					break;
-				case 2:
-					wertung.setKari2(number);
-					break;
-				case 3:
-					wertung.setKari3(number);
-					break;
-				case 4:
-					wertung.setKari4(number);
-					break;
-				case 5:
-					wertung.setHd1(number);
-					break;
-				case 6:
-					wertung.setHd2(number);
-					break;
-				case 7:
-					wertung.setSchwierigkeit(number);
-					break;
-				default:
-					break;
-				}
+				kari.setValue(number);
 
 			}
 			catch (ParseException e1) {
@@ -427,7 +309,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 				e1.printStackTrace();
 			}
 
-			lblErgebnis.setText(converter.format(wertung.getErgebnis()));
+			lblErgebnis.setText(converter.format(wertung.getErgebnis().doubleValue()));
 		}
 	}
 

@@ -1,20 +1,28 @@
 package de.kreth.vereinsmeisterschaftprog;
 
+import de.kreth.vereinsmeisterschaftprog.data.WertungFactory;
 import de.kreth.vereinsmeisterschaftprog.db.Persister;
-
 
 public class FactoryProductive extends Factory {
 
-   private PersisterProductive persister;
+	private final PersisterProductive persister;
 
-   public FactoryProductive() {
-      instance = this;
-      persister = new PersisterProductive();
-   }
-   
-   @Override
-   public Persister getPersister() {
-      return persister;
-   }
+	private final WertungFactory wertungFactory;
+
+	public FactoryProductive() {
+		instance = this;
+		persister = new PersisterProductive();
+		wertungFactory = new WertungFactory();
+	}
+
+	@Override
+	public Persister getPersister() {
+		return persister;
+	}
+
+	@Override
+	public WertungFactory getWertungFactory() {
+		return wertungFactory;
+	}
 
 }

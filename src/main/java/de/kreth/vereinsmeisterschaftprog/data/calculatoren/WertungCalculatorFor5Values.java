@@ -2,48 +2,23 @@ package de.kreth.vereinsmeisterschaftprog.data.calculatoren;
 
 import java.math.BigDecimal;
 
-import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
-import de.kreth.vereinsmeisterschaftprog.data.WertungOld;
+import de.kreth.vereinsmeisterschaftprog.data.ValueType;
+import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
-public class WertungCalculatorFor5Values implements WertungCalcularor<WertungOld> {
+public class WertungCalculatorFor5Values extends AbstractWertungCalcularor {
 
 	@Override
-	public double calculate(WertungOld wertung) {
+	public BigDecimal calculate(Wertung wertung) {
 
-		BigDecimal result = BigDecimal.valueOf(wertung.getKari1());
-		BigDecimal min = BigDecimal.valueOf(wertung.getKari1());
-		BigDecimal max = BigDecimal.valueOf(wertung.getKari1());
+		BigDecimal result = sumAllHaltung(wertung);
 
 		result = result
-				.add(BigDecimal.valueOf(wertung.getKari2()))
-				.add(BigDecimal.valueOf(wertung.getKari3()))
-				.add(BigDecimal.valueOf(wertung.getKari4()))
-				.add(BigDecimal.valueOf(wertung.getKari5()));
+				.subtract(min(wertung.getByType(ValueType.HALTUNG)).getValue())
+				.subtract(max(wertung.getByType(ValueType.HALTUNG)).getValue());
 
-		if (wertung.getKari2() > max.doubleValue())
-			max = BigDecimal.valueOf(wertung.getKari2());
-		if (wertung.getKari3() > max.doubleValue())
-			max = BigDecimal.valueOf(wertung.getKari3());
-		if (wertung.getKari4() > max.doubleValue())
-			max = BigDecimal.valueOf(wertung.getKari4());
-//      if(wertung.getKari5()>max.doubleValue())
-//         max = BigDecimal.valueOf(wertung.getKari5());
+		result = addDifficulty(wertung, result);
 
-		if (wertung.getKari2() < min.doubleValue())
-			min = BigDecimal.valueOf(wertung.getKari2());
-		if (wertung.getKari3() < min.doubleValue())
-			min = BigDecimal.valueOf(wertung.getKari3());
-		if (wertung.getKari4() < min.doubleValue())
-			min = BigDecimal.valueOf(wertung.getKari4());
-//      if(wertung.getKari5()<min.doubleValue())
-//         min = BigDecimal.valueOf(wertung.getKari5());
-
-		result = result.subtract(min).subtract(max);
-
-		if (wertung.getDurchgang() == Durchgang.KUER)
-			result = result.add(BigDecimal.valueOf(wertung.getSchwierigkeit()));
-
-		return result.doubleValue();
+		return result;
 	}
 
 }

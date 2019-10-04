@@ -1,27 +1,32 @@
 package de.kreth.vereinsmeisterschaftprog.data.calculatoren;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import de.kreth.vereinsmeisterschaftprog.data.Value;
+import de.kreth.vereinsmeisterschaftprog.data.ValueType;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
-import de.kreth.vereinsmeisterschaftprog.data.WertungOld;
 
 public class WertungCalculatorFactory {
 
-	public static <T extends Wertung> double calculate(T wertung) {
-		double result = 0;
+	public static BigDecimal calculate(Wertung wertung) {
+		BigDecimal result = BigDecimal.ZERO;
 
-		if (wertung instanceof WertungOld) {
+		List<Value> hdWerte = wertung.getByType(ValueType.HD);
 
-			WertungOld wert = (WertungOld) wertung;
+		if (hdWerte == null || hdWerte.isEmpty()) {
+
 			switch (getAnzahlWerte(wertung)) {
 			case 3:
-				result = new WertungCalculatorFor3Values().calculate(wert);
+				result = new WertungCalculatorFor3Values().calculate(wertung);
 				break;
 
 			case 4:
-				result = new WertungCalculatorFor4Values().calculate(wert);
+				result = new WertungCalculatorFor4Values().calculate(wertung);
 				break;
 
 			case 5:
-				result = new WertungCalculatorFor5Values().calculate(wert);
+				result = new WertungCalculatorFor5Values().calculate(wertung);
 				break;
 
 			default:
@@ -51,26 +56,6 @@ public class WertungCalculatorFactory {
 	}
 
 	private static int getAnzahlWerte(Wertung wertung) {
-		int anzahl = 0;
-
-		if (wertung.getKari1() > 0)
-			anzahl++;
-
-		if (wertung.getKari2() > 0)
-			anzahl++;
-
-		if (wertung.getKari3() > 0)
-			anzahl++;
-
-		if (wertung.getKari4() > 0)
-			anzahl++;
-
-		if (wertung instanceof WertungOld) {
-			WertungOld wert = (WertungOld) wertung;
-			if (wert.getKari5() > 0)
-				anzahl++;
-
-		}
-		return anzahl;
+		return wertung.getByType(ValueType.HALTUNG).size();
 	}
 }

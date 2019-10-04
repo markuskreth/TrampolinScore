@@ -1,45 +1,31 @@
 package de.kreth.vereinsmeisterschaftprog.data;
 
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import de.kreth.vereinsmeisterschaftprog.data.calculatoren.WertungCalculatorFactory;
 
-public class Wertung implements Cloneable {
+public class Wertung implements Cloneable, PropertyChangeListener {
 
-	public static final String ERGEBNIS_CHANGE_PROPERTY = Wertung.class.getName() + " ERgebnis geändert!";
+	public static final String ERGEBNIS_CHANGE_PROPERTY = Wertung.class.getName() + " Ergebnis geändert!";
 
-	public static final String KARI1_CHANGE_PROPERTY = Wertung.class.getName() + " Kari1 geändert!";
+	public static final String HALTUNG_CHANGE_PROPERTY = Wertung.class.getName() + " Kari geändert!";
 
-	public static final String KARI2_CHANGE_PROPERTY = Wertung.class.getName() + " Kari2 geändert!";
-
-	public static final String KARI3_CHANGE_PROPERTY = Wertung.class.getName() + " Kari3 geändert!";
-
-	public static final String KARI4_CHANGE_PROPERTY = Wertung.class.getName() + " Kari4 geändert!";
-
-	public static final String HD1_CHANGE_PROPERTY = Wertung.class.getName() + " HD1 geändert!";
-
-	public static final String HD2_CHANGE_PROPERTY = Wertung.class.getName() + " HD2 geändert!";
+	public static final String HD_CHANGE_PROPERTY = Wertung.class.getName() + " HD geändert!";
 
 	public static final String DIFF_CHANGE_PROPERTY = Wertung.class.getName() + " Schwierigkeit geändert!";
 
-	private double kari1 = 0;
+	private final List<Value> werte = new ArrayList<>();
 
-	private double kari2 = 0;
+	private BigDecimal ergebnis = BigDecimal.ZERO;
 
-	private double kari3 = 0;
-
-	private double kari4 = 0;
-
-	private double hd1 = 0;
-
-	private double hd2 = 0;
-
-	private double schwierigkeit = 0;
-
-	private double ergebnis = 0;
-
-	private Durchgang durchgang;
+	private final Durchgang durchgang;
 
 	private PropertyChangeSupport pcs;
 
@@ -47,9 +33,26 @@ public class Wertung implements Cloneable {
 
 	@Override
 	public String toString() {
-		return durchgang + " kari1=" + kari1 + "; kari2=" + kari2 + "; kari3=" + kari3 + "; kari4=" + kari4 + "; hd1="
-				+ hd1 + "; hd2="
-				+ hd2 + "; diff=" + schwierigkeit + "=>" + ergebnis;
+		List<Value> sorted = new ArrayList<>(werte);
+		sorted.sort(this::compare);
+		StringBuilder text = new StringBuilder();
+		text.append(durchgang).append(" [");
+		for (Value v : sorted) {
+			if (sorted.get(0).equals(v)) {
+				text.append(",");
+			}
+			text.append(v);
+		}
+		text.append("] =>").append(ergebnis);
+		return text.toString();
+	}
+
+	private int compare(Value v1, Value v2) {
+		int compare = Integer.compare(v1.getType().ordinal(), v2.getType().ordinal());
+		if (compare == 0) {
+			compare = Integer.compare(v1.getIndex(), v2.getIndex());
+		}
+		return compare;
 	}
 
 	@Override
@@ -59,16 +62,10 @@ public class Wertung implements Cloneable {
 	}
 
 	protected Wertung clone(Wertung clone) {
-		clone.kari1 = kari1;
-		clone.kari2 = kari2;
-		clone.kari3 = kari3;
-		clone.kari4 = kari4;
-		clone.hd1 = hd1;
-		clone.hd2 = hd2;
-
-		clone.schwierigkeit = schwierigkeit;
+		werte.forEach(e -> clone.werte.add(e.clone()));
 		clone.ergebnis = ergebnis;
 
+		clone.werte.forEach(wert -> wert.addPropertyChangeListener(ev -> clone.calculate()));
 		return clone;
 	}
 
@@ -82,100 +79,25 @@ public class Wertung implements Cloneable {
 		return id;
 	}
 
-	public double getKari1() {
-		return kari1;
+	/**
+	 * Unmodifiable!
+	 * @return
+	 */
+	public List<Value> allValues() {
+		return Collections.unmodifiableList(werte);
 	}
 
-	public void setKari1(double kari1) {
-		Double OldValue = Double.valueOf(this.kari1);
-		this.kari1 = kari1;
-
-		calculate();
-
-		pcs.firePropertyChange(KARI1_CHANGE_PROPERTY, OldValue, Double.valueOf(this.kari1));
-	}
-
-	public double getKari2() {
-		return kari2;
-	}
-
-	public void setKari2(double kari2) {
-		Double OldValue = Double.valueOf(this.kari2);
-		this.kari2 = kari2;
-		calculate();
-
-		pcs.firePropertyChange(KARI2_CHANGE_PROPERTY, OldValue, Double.valueOf(this.kari2));
-	}
-
-	public double getKari3() {
-		return kari3;
-	}
-
-	public void setKari3(double kari3) {
-		Double OldValue = Double.valueOf(this.kari3);
-		this.kari3 = kari3;
-		calculate();
-
-		pcs.firePropertyChange(KARI3_CHANGE_PROPERTY, OldValue, Double.valueOf(this.kari3));
-	}
-
-	public double getKari4() {
-		return kari4;
-	}
-
-	public void setKari4(double kari4) {
-		Double OldValue = Double.valueOf(this.kari4);
-		this.kari4 = kari4;
-		calculate();
-
-		pcs.firePropertyChange(KARI4_CHANGE_PROPERTY, OldValue, Double.valueOf(this.kari4));
-	}
-
-	public double getHd1() {
-		return hd1;
-	}
-
-	public void setHd1(double hd1) {
-
-		Double OldValue = Double.valueOf(this.hd1);
-		this.hd1 = hd1;
-		calculate();
-
-		pcs.firePropertyChange(HD1_CHANGE_PROPERTY, OldValue, Double.valueOf(this.hd1));
-	}
-
-	public double getHd2() {
-		return hd2;
-	}
-
-	public void setHd2(double hd2) {
-
-		Double OldValue = Double.valueOf(this.hd2);
-		this.hd2 = hd2;
-		calculate();
-
-		pcs.firePropertyChange(HD2_CHANGE_PROPERTY, OldValue, Double.valueOf(this.hd2));
-	}
-
-	public double getSchwierigkeit() {
-		return schwierigkeit;
-	}
-
-	public void setSchwierigkeit(double schwierigkeit) {
-		Double OldValue = Double.valueOf(this.schwierigkeit);
-		this.schwierigkeit = schwierigkeit;
-		calculate();
-
-		pcs.firePropertyChange(DIFF_CHANGE_PROPERTY, OldValue, Double.valueOf(this.schwierigkeit));
+	public List<Value> getByType(ValueType type) {
+		return werte.stream().filter(v -> v.getType() == type).sorted(this::compare).collect(Collectors.toList());
 	}
 
 	private void calculate() {
-		Double oldErgebnis = Double.valueOf(ergebnis);
+		BigDecimal oldErgebnis = ergebnis;
 		ergebnis = WertungCalculatorFactory.calculate(this);
-		pcs.firePropertyChange(ERGEBNIS_CHANGE_PROPERTY, oldErgebnis, Double.valueOf(ergebnis));
+		pcs.firePropertyChange(ERGEBNIS_CHANGE_PROPERTY, oldErgebnis, ergebnis);
 	}
 
-	public double getErgebnis() {
+	public BigDecimal getErgebnis() {
 		return ergebnis;
 	}
 
@@ -203,4 +125,35 @@ public class Wertung implements Cloneable {
 		pcs.removePropertyChangeListener(listener);
 	}
 
+	public Value get(ValueType type, int index) {
+		for (Value v : this.werte) {
+			if (type.equals(v.getType()) && index == v.getIndex()) {
+				return v;
+			}
+		}
+		throw new IllegalArgumentException("There is no Kari of type " + type + " and index " + index);
+	}
+
+	void setValues(List<Value> valueList) {
+		werte.forEach(w -> w.removePropertyChangeListener(this));
+		this.werte.clear();
+		this.werte.addAll(valueList);
+		this.werte.forEach(w -> w.addPropertyChangeListener(this));
+		if (Durchgang.KUER.equals(durchgang)) {
+			boolean hasDiff = false;
+			for (Value v : werte) {
+				if (ValueType.SCHWIERIGKEIT.equals(v.getType())) {
+					hasDiff = true;
+				}
+			}
+			if (hasDiff == false) {
+				throw new IllegalStateException("Kuer must have SCHWIERIGKEIT");
+			}
+		}
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		calculate();
+	}
 }

@@ -2,6 +2,8 @@ package de.kreth.vereinsmeisterschaftprog;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,6 +16,8 @@ import de.kreth.hsqldbcreator.HsqlCreator;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
 import de.kreth.vereinsmeisterschaftprog.data.Gruppe;
+import de.kreth.vereinsmeisterschaftprog.data.Value;
+import de.kreth.vereinsmeisterschaftprog.data.ValueType;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 import de.kreth.vereinsmeisterschaftprog.data.Wettkampf;
 import de.kreth.vereinsmeisterschaftprog.db.DatabaseTableCreator;
@@ -60,39 +64,39 @@ class PersisterProductive implements Persister {
 		String durchgString = rs.getString("durchgang");
 		Durchgang durchgang = Durchgang.valueOf(durchgString);
 		Wertung w = new Wertung(rs.getInt("id"), durchgang);
-
-		double kari1 = rs.getDouble("kari1");
-		if (!rs.wasNull())
-			w.setKari1(kari1);
-
-		double kari2 = rs.getDouble("kari2");
-		if (!rs.wasNull())
-			w.setKari2(kari2);
-
-		double kari3 = rs.getDouble("kari3");
-		if (!rs.wasNull())
-			w.setKari3(kari3);
-
-		double kari4 = rs.getDouble("kari4");
-		if (!rs.wasNull())
-			w.setKari4(kari4);
-
-		double hd1 = rs.getDouble("hd1");
-		if (!rs.wasNull())
-			w.setHd1(hd1);
-
-		double hd2 = rs.getDouble("hd2");
-		if (!rs.wasNull())
-			w.setHd2(hd2);
-
-		double schw = rs.getDouble("schwierigkeit");
-
-		if (!rs.wasNull())
-			w.setSchwierigkeit(schw);
-
+		fillValues(w);
 		w.addPropertyChangeListener(new PeristerWertungChangeListener(w));
 
 		return w;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void fillValues(Wertung w) throws SQLException {
+		ResultSet rs = hsql.executeQuery("SELECT * FROM VALUE WHERE id=" + w.getId());
+		List<Value> werte;
+		try {
+			Field valueField = Wertung.class.getDeclaredField("werte");
+			valueField.setAccessible(true);
+			werte = (List<Value>) valueField.get(w);
+		}
+		catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			throw new SQLException("Unable to fill Values of " + w, e);
+		}
+
+		while (rs.next()) {
+			werte.add(createValueFrom(rs));
+		}
+	}
+
+	private Value createValueFrom(ResultSet rs) throws SQLException {
+		ValueType type = ValueType.valueOf(rs.getString("type"));
+		int precision = rs.getInt("precision");
+		int index = rs.getInt("ergebnis_index");
+		BigDecimal value = rs.getBigDecimal("value");
+		Value v = new Value(type, precision, index);
+		v.setValue(value);
+		return v;
+
 	}
 
 	@Override
@@ -110,7 +114,7 @@ class PersisterProductive implements Persister {
 			if (generatedKeys.next()) {
 				int id = generatedKeys.getInt(1);
 				pflicht = new Wertung(id, Durchgang.PFLICHT);
-				pflicht.addPropertyChangeListener(new PeristerWertungChangeListener(pflicht));
+				new PeristerWertungChangeListener(pflicht);
 			}
 
 			hsql.executeUpdate("INSERT INTO wertung (durchgang) VALUES('" + Durchgang.KUER + "')",
@@ -120,7 +124,7 @@ class PersisterProductive implements Persister {
 			if (generatedKeys.next()) {
 				int id = generatedKeys.getInt(1);
 				kuer = new Wertung(id, Durchgang.KUER);
-				kuer.addPropertyChangeListener(new PeristerWertungChangeListener(kuer));
+				new PeristerWertungChangeListener(kuer);
 			}
 
 			if (pflicht == null || kuer == null)
@@ -219,7 +223,7 @@ class PersisterProductive implements Persister {
 
 			if (evt.getPropertyName().matches(Ergebnis.ERGEBNIS_CHANGE_PROPERTY)) {
 				try {
-					stmPunkteUpdate.setDouble(1, ergebnis.getErgebnis());
+					stmPunkteUpdate.setBigDecimal(1, ergebnis.getErgebnis());
 					int count = stmPunkteUpdate.executeUpdate();
 
 					if (count != 1) {
@@ -276,42 +280,17 @@ class PersisterProductive implements Persister {
 
 	private class PeristerWertungChangeListener implements PropertyChangeListener {
 
-		private Wertung wertung;
-
-		private final PreparedStatement stmKari1Update;
-
-		private final PreparedStatement stmKari2Update;
-
-		private final PreparedStatement stmKari3Update;
-
-		private final PreparedStatement stmKari4Update;
-
-		private final PreparedStatement stmHd1Update;
-
-		private final PreparedStatement stmHd2Update;
-
-		private final PreparedStatement stmDiffUpdate;
-
-		private final PreparedStatement stmResultUpdate;
-
 		private Connection connection;
 
-		public PeristerWertungChangeListener(Wertung wertung) {
+		private PreparedStatement valueUpdate;
+
+		private PeristerWertungChangeListener(Wertung wertung) {
 			super();
-			this.wertung = wertung;
 			try {
 				this.connection = hsql.getConnection();
-				stmKari1Update = connection.prepareStatement("UPDATE wertung SET KARI1=? WHERE ID=" + wertung.getId());
-				stmKari2Update = connection.prepareStatement("UPDATE wertung SET KARI2=? WHERE ID=" + wertung.getId());
-				stmKari3Update = connection.prepareStatement("UPDATE wertung SET KARI3=? WHERE ID=" + wertung.getId());
-				stmKari4Update = connection.prepareStatement("UPDATE wertung SET KARI4=? WHERE ID=" + wertung.getId());
-				stmHd1Update = connection.prepareStatement("UPDATE wertung SET HD1=? WHERE ID=" + wertung.getId());
-				stmHd2Update = connection.prepareStatement("UPDATE wertung SET HD2=? WHERE ID=" + wertung.getId());
-
-				stmDiffUpdate = connection
-						.prepareStatement("UPDATE wertung SET SCHWIERIGKEIT=? WHERE ID=" + wertung.getId());
-				stmResultUpdate = connection
-						.prepareStatement("UPDATE wertung SET ERGEBNIS=? WHERE ID=" + wertung.getId());
+				valueUpdate = connection.prepareStatement("UPDATE VALUE SET value=? WHERE wertung=" + wertung.getId()
+						+ " AND ergebnis_index=? AND type=?");
+				wertung.allValues().forEach(v -> v.addPropertyChangeListener(PeristerWertungChangeListener.this));
 			}
 			catch (SQLException e) {
 				throw new IllegalStateException("Unable to create Database Statements", e);
@@ -320,103 +299,25 @@ class PersisterProductive implements Persister {
 
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
+			Value changed = (Value) evt.getNewValue();
 			try {
-				int count;
-				if (evt.getPropertyName().matches(Wertung.KARI1_CHANGE_PROPERTY)) {
-					stmKari1Update.setDouble(1, wertung.getKari1());
-					count = stmKari1Update.executeUpdate();
-					if (count != 1) {
-						throw new IllegalStateException("Beim Update von Kari1 wurden " + count + " Zeilen geändert!");
-					}
-					connection.commit();
+				Field indexField = Value.class.getDeclaredField("index");
+				indexField.setAccessible(true);
+				int ergebnis_index = indexField.getInt(changed);
+
+				valueUpdate.setBigDecimal(1, changed.getValue());
+				valueUpdate.setInt(2, ergebnis_index);
+				valueUpdate.setString(3, changed.getType().name());
+				int count = valueUpdate.executeUpdate();
+
+				if (count != 1) {
+					throw new IllegalStateException("Beim Update von Kari1 wurden " + count + " Zeilen geändert!");
 				}
-
-				if (evt.getPropertyName().matches(Wertung.KARI2_CHANGE_PROPERTY)) {
-					stmKari2Update.setDouble(1, wertung.getKari2());
-
-					count = stmKari2Update.executeUpdate();
-					if (count != 1) {
-						throw new IllegalStateException("Beim Update von Kari2 wurden " + count + " Zeilen geändert!");
-					}
-					connection.commit();
-				}
-
-				if (evt.getPropertyName().matches(Wertung.KARI3_CHANGE_PROPERTY)) {
-
-					stmKari3Update.setDouble(1, wertung.getKari3());
-
-					count = stmKari3Update.executeUpdate();
-
-					if (count != 1) {
-						throw new IllegalStateException("Beim Update von Kari3 wurden " + count + " Zeilen geändert!");
-					}
-					connection.commit();
-				}
-
-				if (evt.getPropertyName().matches(Wertung.KARI4_CHANGE_PROPERTY)) {
-
-					stmKari4Update.setDouble(1, wertung.getKari4());
-
-					count = stmKari4Update.executeUpdate();
-
-					if (count != 1) {
-						throw new IllegalStateException("Beim Update von Kari4 wurden " + count + " Zeilen geändert!");
-					}
-					connection.commit();
-				}
-
-				if (evt.getPropertyName().matches(Wertung.HD1_CHANGE_PROPERTY)) {
-
-					stmHd1Update.setDouble(1, wertung.getHd1());
-
-					count = stmHd1Update.executeUpdate();
-
-					if (count != 1) {
-						throw new IllegalStateException("Beim Update von HD1 wurden " + count + " Zeilen geändert!");
-					}
-					connection.commit();
-				}
-
-				if (evt.getPropertyName().matches(Wertung.HD2_CHANGE_PROPERTY)) {
-
-					stmHd2Update.setDouble(1, wertung.getHd2());
-
-					count = stmHd2Update.executeUpdate();
-
-					if (count != 1) {
-						throw new IllegalStateException("Beim Update von HD2 wurden " + count + " Zeilen geändert!");
-					}
-					connection.commit();
-				}
-
-				if (evt.getPropertyName().matches(Wertung.DIFF_CHANGE_PROPERTY)) {
-
-					stmDiffUpdate.setDouble(1, wertung.getSchwierigkeit());
-
-					count = stmDiffUpdate.executeUpdate();
-
-					if (count != 1) {
-						throw new IllegalStateException(
-								"Beim Update von Schwierigkeit wurden " + count + " Zeilen geändert!");
-					}
-					connection.commit();
-				}
-
-				if (evt.getPropertyName().matches(Wertung.ERGEBNIS_CHANGE_PROPERTY)) {
-
-					stmResultUpdate.setDouble(1, wertung.getErgebnis());
-
-					count = stmResultUpdate.executeUpdate();
-
-					if (count != 1) {
-						throw new IllegalStateException(
-								"Beim Update von Ergebnis wurden " + count + " Zeilen geändert!");
-					}
-					connection.commit();
-				}
+				connection.commit();
 
 			}
-			catch (SQLException e) {
+			catch (SQLException | NoSuchFieldException | SecurityException | IllegalArgumentException
+					| IllegalAccessException e) {
 				e.printStackTrace();
 			}
 		}

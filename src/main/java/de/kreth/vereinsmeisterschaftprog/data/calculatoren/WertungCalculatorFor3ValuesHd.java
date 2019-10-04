@@ -3,27 +3,22 @@ package de.kreth.vereinsmeisterschaftprog.data.calculatoren;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
-class WertungCalculatorFor3ValuesHd implements WertungCalcularor<Wertung> {
+class WertungCalculatorFor3ValuesHd extends AbstractWertungCalcularor {
 
 	@Override
-	public double calculate(Wertung wertung) {
+	public BigDecimal calculate(Wertung wertung) {
 
-		BigDecimal result = BigDecimal.valueOf(wertung.getKari1());
-		result = result
-				.add(BigDecimal.valueOf(wertung.getKari2()))
-				.add(BigDecimal.valueOf(wertung.getKari3()))
-				.add(BigDecimal.valueOf(wertung.getKari4()));
-		result = result.multiply(BigDecimal.valueOf(2)).divide(BigDecimal.valueOf(3), 5, RoundingMode.HALF_UP);
+		BigDecimal result = sumAllHaltung(wertung);
+		int scale = result.scale();
 
-		result = result.add(WertungCalcularor.calculateHd(wertung));
+		result = result.divide(BigDecimal.valueOf(3), scale + 1, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(2))
+				.setScale(scale, RoundingMode.HALF_UP);
 
-		if (wertung.getDurchgang() == Durchgang.KUER)
-			result = result.add(BigDecimal.valueOf(wertung.getSchwierigkeit()));
+		result = addHdAndDifficulty(wertung, result);
 
-		return result.doubleValue();
+		return result;
 	}
 
 }
