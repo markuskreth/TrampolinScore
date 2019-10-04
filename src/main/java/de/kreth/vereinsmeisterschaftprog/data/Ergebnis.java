@@ -15,7 +15,9 @@ public class Ergebnis {
 
 	public static final String STARTERNAME_CHANGE_PROPERTY = Ergebnis.class.getName() + " Starter Name geändert!";
 
-	private int id;
+	private final int id;
+
+	private final int random;
 
 	private String starterName;
 
@@ -31,9 +33,10 @@ public class Ergebnis {
 
 	PropertyChangeSupport pcs;
 
-	public Ergebnis(int id, String starterName, PlatzCalculator calc, Wertung pflicht, Wertung kuer) {
+	public Ergebnis(int id, String starterName, PlatzCalculator calc, Wertung pflicht, Wertung kuer, int random) {
 
 		this.calc = calc;
+		this.random = random;
 		this.id = id;
 		this.starterName = starterName;
 		pcs = new PropertyChangeSupport(this);
@@ -101,6 +104,10 @@ public class Ergebnis {
 
 	public int getPlatz() {
 		return platz;
+	}
+
+	public int compareForStartreihenfolge(Ergebnis other) {
+		return Integer.compare(random, other.random);
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {

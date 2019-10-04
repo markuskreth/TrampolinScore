@@ -23,7 +23,7 @@ public class MainFrameBusiness {
 
 	private WettkampfBusiness wettkampfBusiness;
 
-	private Gruppe pflicht;
+	private Gruppe currentGruppe;
 
 	private List<Gruppe> gruppen;
 
@@ -39,10 +39,12 @@ public class MainFrameBusiness {
 		persister = Factory.getInstance().getPersister();
 		gruppen = persister.loadPflichten();
 
-		if (gruppen.size() > 0)
-			pflicht = gruppen.get(0);
-		else
-			pflicht = Gruppe.INVALID;
+		if (gruppen.size() > 0) {
+			currentGruppe = gruppen.get(0);
+		}
+		else {
+			currentGruppe = Gruppe.INVALID;
+		}
 
 		for (Gruppe p : gruppen) {
 			Wettkampf wettkampf = new Wettkampf(p.getName(), p);
@@ -50,7 +52,7 @@ public class MainFrameBusiness {
 			persister.fillWithStartern(wettkampf);
 		}
 
-		wettkampfBusiness.setWettkampf(wettkaempfe.get(pflicht));
+		wettkampfBusiness.setWettkampf(wettkaempfe.get(currentGruppe));
 	}
 
 	public void addPflicht() {
@@ -59,7 +61,7 @@ public class MainFrameBusiness {
 
 	public void pflichtChange(Gruppe p) {
 		if (p.getId() >= 0) {
-			this.pflicht = p;
+			this.currentGruppe = p;
 			wettkampfBusiness.setWettkampf(wettkaempfe.get(p));
 		}
 		else
@@ -75,8 +77,8 @@ public class MainFrameBusiness {
 	}
 
 	public void doExport() {
-		Wettkampf wettkampf = wettkaempfe.get(this.pflicht);
-		File file = new File(this.pflicht.getName() + ".csv");
+		Wettkampf wettkampf = wettkaempfe.get(this.currentGruppe);
+		File file = new File(this.currentGruppe.getName() + ".csv");
 
 		if (file.exists())
 			file.delete();
@@ -98,6 +100,9 @@ public class MainFrameBusiness {
 	public void createGroup(String groupName, String groupDescription) {
 		Gruppe g = persister.createPflicht(groupName, groupDescription);
 		gruppen.add(g);
+
+		Wettkampf wettkampf = new Wettkampf(g.getName(), g);
+		wettkaempfe.put(g, wettkampf);
 	}
 
 }

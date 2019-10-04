@@ -6,6 +6,7 @@ import java.beans.PropertyChangeSupport;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +39,7 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 		StringBuilder text = new StringBuilder();
 		text.append(durchgang).append(" [");
 		for (Value v : sorted) {
-			if (sorted.get(0).equals(v)) {
+			if (!sorted.get(0).equals(v)) {
 				text.append(",");
 			}
 			text.append(v);
@@ -137,6 +138,12 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 	void setValues(List<Value> valueList) {
 		werte.forEach(w -> w.removePropertyChangeListener(this));
 		this.werte.clear();
+		List<String> identifiers = valueList.stream().map(v -> v.identifier()).collect(Collectors.toList());
+		int size = new HashSet<>(identifiers).size();
+		if (size < valueList.size()) {
+			Collections.sort(identifiers);
+			throw new IllegalStateException("Doublicate Values in " + toString() + ": " + identifiers);
+		}
 		this.werte.addAll(valueList);
 		this.werte.forEach(w -> w.addPropertyChangeListener(this));
 		if (Durchgang.KUER.equals(durchgang)) {

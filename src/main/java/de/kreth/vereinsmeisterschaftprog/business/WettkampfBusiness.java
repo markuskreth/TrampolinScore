@@ -9,6 +9,7 @@ import de.kreth.vereinsmeisterschaftprog.Factory;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
+import de.kreth.vereinsmeisterschaftprog.data.WertungFactory;
 import de.kreth.vereinsmeisterschaftprog.data.Wettkampf;
 import de.kreth.vereinsmeisterschaftprog.db.Persister;
 import de.kreth.vereinsmeisterschaftprog.gui.WertenDialog;
@@ -61,16 +62,26 @@ public class WettkampfBusiness {
 
 	public void werteErgebnis(Ergebnis e, Durchgang durchgang) {
 		Wertung wertung;
+		WertungFactory wertungFactory = Factory.getInstance().getWertungFactory();
 		switch (durchgang) {
 		case KUER:
 			wertung = e.getKuer();
+			if (wertung.allValues().isEmpty()) {
+				wertungFactory.setup(wertung, true);
+			}
 			break;
 		case PFLICHT:
 		default:
 			wertung = e.getPflicht();
+			if (wertung.allValues().isEmpty()) {
+				wertungFactory.setup(wertung, false);
+			}
 			break;
 		}
 
+		if (wertung.allValues().isEmpty()) {
+
+		}
 		WertenDialog dlg = new WertenDialog(this, e.getStarterName(), wertung);
 		dlg.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		dlg.setVisible(true);

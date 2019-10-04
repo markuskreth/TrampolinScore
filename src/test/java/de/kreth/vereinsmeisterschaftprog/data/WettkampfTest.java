@@ -20,11 +20,11 @@ public class WettkampfTest {
 	public void test() {
 		Wettkampf w = new Wettkampf("Test", new Gruppe(1, "P2", "Gruppe P2"));
 
-		Ergebnis m = new Ergebnis(1, "Markus", w, new Wertung(1, Durchgang.PFLICHT), new Wertung(2, Durchgang.KUER));
+		Ergebnis m = new Ergebnis(1, "Markus", w, new Wertung(1, Durchgang.PFLICHT), new Wertung(2, Durchgang.KUER), 1);
 		w.add(m);
-		Ergebnis j = new Ergebnis(2, "Jasmin", w, new Wertung(3, Durchgang.PFLICHT), new Wertung(4, Durchgang.KUER));
+		Ergebnis j = new Ergebnis(2, "Jasmin", w, new Wertung(3, Durchgang.PFLICHT), new Wertung(4, Durchgang.KUER), 2);
 		w.add(j);
-		Ergebnis k = new Ergebnis(3, "Kira", w, new Wertung(5, Durchgang.PFLICHT), new Wertung(6, Durchgang.KUER));
+		Ergebnis k = new Ergebnis(3, "Kira", w, new Wertung(5, Durchgang.PFLICHT), new Wertung(6, Durchgang.KUER), 3);
 		w.add(k);
 
 		wf.setupWertungen(w);

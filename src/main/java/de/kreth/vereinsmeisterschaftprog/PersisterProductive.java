@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import de.kreth.hsqldbcreator.HsqlCreator;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
@@ -24,6 +25,8 @@ import de.kreth.vereinsmeisterschaftprog.db.DatabaseTableCreator;
 import de.kreth.vereinsmeisterschaftprog.db.Persister;
 
 class PersisterProductive implements Persister {
+
+	private final Random random = new Random(System.currentTimeMillis());
 
 	private HsqlCreator hsql;
 
@@ -42,11 +45,11 @@ class PersisterProductive implements Persister {
 				String starterName = rs.getString("startername");
 				int pflichtId = rs.getInt("pflicht");
 				int kuerId = rs.getInt("kuer");
-
+				int random = rs.getInt("random");
 				Wertung pflicht = getWertung(pflichtId);
 				Wertung kuer = getWertung(kuerId);
 
-				Ergebnis e = new Ergebnis(id, starterName, wk, kuer, pflicht);
+				Ergebnis e = new Ergebnis(id, starterName, wk, kuer, pflicht, random);
 				e.addPropertyChangeListener(new PersisterErgebnisChangeListener(e));
 				wk.add(e);
 			}
@@ -131,14 +134,15 @@ class PersisterProductive implements Persister {
 				throw new IllegalStateException(
 						"Db-Fehler! Konnte Pflicht oder Kür nicht anlegen! Pflicht=" + pflicht + " Kür=" + kuer);
 
-			hsql.executeUpdate("INSERT INTO ergebnis (startername, wettkampf, pflicht, kuer) " + "VALUES('"
+			int rand = random.nextInt();
+			hsql.executeUpdate("INSERT INTO ergebnis (startername, wettkampf, pflicht, kuer, random) " + "VALUES('"
 					+ starterName + "', '" + wettkampf.getGruppe() + "', " + pflicht.getId()
-					+ ", " + kuer.getId() + ")", Statement.RETURN_GENERATED_KEYS);
+					+ ", " + kuer.getId() + ", " + rand + ")", Statement.RETURN_GENERATED_KEYS);
 			generatedKeys = hsql.getGeneratedKeys();
 
 			if (generatedKeys.next()) {
 				int id = generatedKeys.getInt(1);
-				result = new Ergebnis(id, starterName, wettkampf, kuer, pflicht);
+				result = new Ergebnis(id, starterName, wettkampf, kuer, pflicht, rand);
 				result.addPropertyChangeListener(new PersisterErgebnisChangeListener(result));
 			}
 
