@@ -13,7 +13,7 @@ import de.kreth.vereinsmeisterschaftprog.data.WertungFactory;
 import de.kreth.vereinsmeisterschaftprog.data.Wettkampf;
 import de.kreth.vereinsmeisterschaftprog.db.Persister;
 import de.kreth.vereinsmeisterschaftprog.gui.WertenDialog;
-import de.kreth.vereinsmeisterschaftprog.gui.WettkampfPanel;
+import de.kreth.vereinsmeisterschaftprog.gui.components.WettkampfPanel;
 
 public class WettkampfBusiness {
 

@@ -1,4 +1,4 @@
-package de.kreth.vereinsmeisterschaftprog.gui;
+package de.kreth.vereinsmeisterschaftprog.gui.components;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -15,6 +15,7 @@ import de.kreth.vereinsmeisterschaftprog.business.WettkampfBusiness;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
+import de.kreth.vereinsmeisterschaftprog.gui.WertenDialog;
 
 public class ErgebnisPanel extends JPanel {
 
@@ -24,19 +25,19 @@ public class ErgebnisPanel extends JPanel {
 
 	private final Ergebnis ergebnis;
 
-	private JLabel lblStarterName;
+	private final JLabel lblStarterName;
 
-	private JLabel lblPflicht;
+	private final JLabel lblPflicht;
 
-	private JLabel lblKuer;
+	private final JLabel lblKuer;
 
-	private JLabel lblErgebnis;
+	private final JLabel lblErgebnis;
 
-	private JLabel lblPlatz;
+	private final JLabel lblPlatz;
 
-	private Durchgang durchgang;
+	private final Durchgang durchgang;
 
-	private DecimalFormat df;
+	private final DecimalFormat df;
 
 	/**
 	 * Create the panel.
