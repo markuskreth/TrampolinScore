@@ -9,7 +9,7 @@ doc/
 *.o
 *.so
 *.zargo~
-db/
+/db/
 *.csv
 
 # Android/ Eclipse
@@ -55,3 +55,5 @@ Icon?
 ehthumbs.db
 Thumbs.db
 /target/
+
+db.bak/

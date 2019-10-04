@@ -47,9 +47,9 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
 	private JLabel lblStarter;
 
-	private String starterName;
+	private final Wertung wertung;
 
-	private Wertung wertung;
+	private String starterName;
 
 	private Wertung dummy;
 
@@ -58,9 +58,13 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 	/**
 	 * Create the dialog.
 	 */
-	public WertenDialog(final WettkampfBusiness business) {
+	public WertenDialog(final WettkampfBusiness business, String starterName, Wertung wertung) {
 
-		setDefaultCloseOperation(HIDE_ON_CLOSE);
+		this.starterName = starterName;
+
+		setTitle(wertung.getDurchgang() + " " + starterName);
+
+		this.wertung = wertung;
 
 		DecimalFormat df = new DecimalFormat("0.0#");
 
@@ -230,6 +234,8 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 			}
 		}
 
+		updateView();
+
 		valueFields.get(0).requestFocus();
 	}
 
@@ -238,15 +244,6 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 		field.setBackground(Color.ORANGE);
 		field.setSelectionEnd(field.getText().length());
 		field.requestFocus();
-	}
-
-	public void setWertung(String starterName, Wertung wertung) {
-		this.starterName = starterName;
-
-		setTitle(wertung.getDurchgang() + " " + starterName);
-
-		this.wertung = wertung;
-		updateView();
 	}
 
 	private void updateView() {
