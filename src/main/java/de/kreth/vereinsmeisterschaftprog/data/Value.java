@@ -57,7 +57,7 @@ public class Value implements Cloneable {
 		pcs.firePropertyChange(identifier(), old, this.value);
 	}
 
-	int getIndex() {
+	public int getIndex() {
 		return index;
 	}
 

@@ -28,6 +28,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
+import org.apache.commons.text.WordUtils;
+
 import de.kreth.vereinsmeisterschaftprog.business.InputConverter;
 import de.kreth.vereinsmeisterschaftprog.business.WettkampfBusiness;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
@@ -106,71 +108,17 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 			gbl_panel.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 			gbl_panel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
 			panel.setLayout(gbl_panel);
-			{
-				JLabel lblNewLabel = new JLabel("Kari1");
-				GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
-				gbc_lblNewLabel.fill = GridBagConstraints.BOTH;
-				gbc_lblNewLabel.insets = new Insets(0, 0, 5, 5);
-				gbc_lblNewLabel.gridx = 0;
-				gbc_lblNewLabel.gridy = 0;
-				panel.add(lblNewLabel, gbc_lblNewLabel);
-			}
-			{
-				JLabel lblKari = new JLabel("Kari2");
-				GridBagConstraints gbc_lblKari = new GridBagConstraints();
-				gbc_lblKari.fill = GridBagConstraints.BOTH;
-				gbc_lblKari.insets = new Insets(0, 0, 5, 5);
-				gbc_lblKari.gridx = 1;
-				gbc_lblKari.gridy = 0;
-				panel.add(lblKari, gbc_lblKari);
-			}
-			{
-				JLabel lblKari_1 = new JLabel("Kari3");
-				GridBagConstraints gbc_lblKari_1 = new GridBagConstraints();
-				gbc_lblKari_1.fill = GridBagConstraints.BOTH;
-				gbc_lblKari_1.insets = new Insets(0, 0, 5, 5);
-				gbc_lblKari_1.gridx = 2;
-				gbc_lblKari_1.gridy = 0;
-				panel.add(lblKari_1, gbc_lblKari_1);
-			}
-			{
-				JLabel lblKari_2 = new JLabel("Kari4");
-				GridBagConstraints gbc_lblKari_2 = new GridBagConstraints();
-				gbc_lblKari_2.fill = GridBagConstraints.BOTH;
-				gbc_lblKari_2.insets = new Insets(0, 0, 5, 5);
-				gbc_lblKari_2.gridx = 3;
-				gbc_lblKari_2.gridy = 0;
-				panel.add(lblKari_2, gbc_lblKari_2);
-			}
-			{
-				JLabel lblKari_3 = new JLabel("Kari5");
-				GridBagConstraints gbc_lblKari_3 = new GridBagConstraints();
-				gbc_lblKari_3.fill = GridBagConstraints.BOTH;
-				gbc_lblKari_3.insets = new Insets(0, 0, 5, 5);
-				gbc_lblKari_3.gridx = 4;
-				gbc_lblKari_3.gridy = 0;
-				panel.add(lblKari_3, gbc_lblKari_3);
-			}
-			{
-				JLabel lblSchwierigkeit = new JLabel("Schwierigkeit");
+			int gridx = 0;
+			for (Value v : wertung.allValues()) {
+
+				JLabel lblKari = new JLabel(createLabelTextFor(v));
 				GridBagConstraints gbc_lblSchwierigkeit = new GridBagConstraints();
 				gbc_lblSchwierigkeit.fill = GridBagConstraints.BOTH;
 				gbc_lblSchwierigkeit.insets = new Insets(0, 0, 5, 5);
-				gbc_lblSchwierigkeit.gridx = 5;
+				gbc_lblSchwierigkeit.gridx = gridx;
 				gbc_lblSchwierigkeit.gridy = 0;
-				panel.add(lblSchwierigkeit, gbc_lblSchwierigkeit);
-			}
-			{
-				JLabel lblErgebnis_2 = new JLabel("Ergebnis");
-				GridBagConstraints gbc_lblErgebnis_2 = new GridBagConstraints();
-				gbc_lblErgebnis_2.fill = GridBagConstraints.BOTH;
-				gbc_lblErgebnis_2.insets = new Insets(0, 0, 5, 0);
-				gbc_lblErgebnis_2.gridx = 6;
-				gbc_lblErgebnis_2.gridy = 0;
-				panel.add(lblErgebnis_2, gbc_lblErgebnis_2);
-			}
-			int gridx = 0;
-			for (Value v : wertung.allValues()) {
+				panel.add(lblKari, gbc_lblSchwierigkeit);
+
 				JFormattedTextField txtKari = new JFormattedTextField(df);
 				txtKari.setName(v.identifier());
 				txtKari.putClientProperty(Value.class, v);
@@ -185,6 +133,15 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 				txtKari.setColumns(10);
 				this.valueFields.add(txtKari);
 				gridx++;
+			}
+			{
+				JLabel lblErgebnis_2 = new JLabel("Ergebnis");
+				GridBagConstraints gbc_lblErgebnis_2 = new GridBagConstraints();
+				gbc_lblErgebnis_2.fill = GridBagConstraints.BOTH;
+				gbc_lblErgebnis_2.insets = new Insets(0, 0, 5, 0);
+				gbc_lblErgebnis_2.gridx = 6;
+				gbc_lblErgebnis_2.gridy = 0;
+				panel.add(lblErgebnis_2, gbc_lblErgebnis_2);
 			}
 			{
 				lblErgebnis = new JLabel("90,3");
@@ -238,6 +195,16 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 		updateView();
 
 		valueFields.get(0).requestFocus();
+	}
+
+	private String createLabelTextFor(Value v) {
+		StringBuilder labelText = new StringBuilder();
+		labelText.append(WordUtils.capitalizeFully(v.getType().name()));
+		if (ValueType.HALTUNG.equals(v.getType()) || ValueType.HD.equals(v.getType())
+				|| ValueType.SYNCHRON.equals(v.getType())) {
+			labelText.append(" ").append(v.getIndex() + 1);
+		}
+		return labelText.toString();
 	}
 
 	private void markAsError(JTextField field) {

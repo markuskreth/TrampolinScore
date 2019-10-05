@@ -27,6 +27,11 @@
 			<artifactId>trampolin-wertung-business</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.6</version>
+		</dependency>
   </dependencies>
   
   <build>
