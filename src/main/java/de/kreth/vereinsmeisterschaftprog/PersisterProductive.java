@@ -2,7 +2,8 @@ package de.kreth.vereinsmeisterschaftprog;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -73,21 +74,21 @@ class PersisterProductive implements Persister {
 		return w;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void fillValues(Wertung w) throws SQLException {
 		ResultSet rs = hsql.executeQuery("SELECT * FROM VALUE WHERE wertung=" + w.getId());
-		List<Value> werte;
-		try {
-			Field valueField = Wertung.class.getDeclaredField("werte");
-			valueField.setAccessible(true);
-			werte = (List<Value>) valueField.get(w);
-		}
-		catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-			throw new SQLException("Unable to fill Values of " + w, e);
-		}
+		List<Value> werte = new ArrayList<>();
 
 		while (rs.next()) {
 			werte.add(createValueFrom(rs));
+		}
+		try {
+			Method valueSetter = Wertung.class.getDeclaredMethod("setValues", List.class);
+			valueSetter.setAccessible(true);
+			valueSetter.invoke(w, werte);
+		}
+		catch (SecurityException | IllegalArgumentException | NoSuchMethodException | IllegalAccessException
+				| InvocationTargetException e) {
+			throw new SQLException("Unable to fill Values of " + w, e);
 		}
 	}
 
@@ -288,13 +289,25 @@ class PersisterProductive implements Persister {
 
 		private PreparedStatement valueUpdate;
 
+		private PreparedStatement valueInsert;
+
+		private PreparedStatement selectCount;
+
+		private PreparedStatement updateWertung;
+
 		private PeristerWertungChangeListener(Wertung wertung) {
 			super();
 			try {
 				this.connection = hsql.getConnection();
+				selectCount = connection.prepareStatement("select count(*) FROM VALUE WHERE wertung=" + wertung.getId()
+						+ " AND ergebnis_index=? AND type=?");
 				valueUpdate = connection.prepareStatement("UPDATE VALUE SET value=? WHERE wertung=" + wertung.getId()
 						+ " AND ergebnis_index=? AND type=?");
-				wertung.allValues().forEach(v -> v.addPropertyChangeListener(PeristerWertungChangeListener.this));
+				valueInsert = connection.prepareStatement(
+						"INSERT INTO VALUE ( WERTUNG, ERGEBNIS_INDEX, PRECISION, TYPE, VALUE ) VALUES ("
+								+ wertung.getId() +
+								",?,?,?,?);");
+				updateWertung = connection.prepareStatement("UPDATE WERTUNG SET ERGEBNIS=? WHERE ID = ?");
 			}
 			catch (SQLException e) {
 				throw new IllegalStateException("Unable to create Database Statements", e);
@@ -303,26 +316,61 @@ class PersisterProductive implements Persister {
 
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
-			Value changed = (Value) evt.getNewValue();
-			try {
-				Field indexField = Value.class.getDeclaredField("index");
-				indexField.setAccessible(true);
-				int ergebnis_index = indexField.getInt(changed);
+			if (evt.getSource() instanceof Value) {
+				Value changed = (Value) evt.getSource();
+				try {
 
-				valueUpdate.setBigDecimal(1, changed.getValue());
-				valueUpdate.setInt(2, ergebnis_index);
-				valueUpdate.setString(3, changed.getType().name());
-				int count = valueUpdate.executeUpdate();
+					PreparedStatement prepared;
 
-				if (count != 1) {
-					throw new IllegalStateException("Beim Update von Kari1 wurden " + count + " Zeilen geändert!");
+					selectCount.setInt(1, changed.getIndex());
+					selectCount.setString(2, changed.getType().name());
+					ResultSet rs = selectCount.executeQuery();
+
+					boolean exists = rs.next() && rs.getInt(1) > 0;
+					rs.close();
+					if (exists) {
+
+						prepared = valueUpdate;
+						prepared.setBigDecimal(1, changed.getValue());
+						prepared.setInt(2, changed.getIndex());
+						prepared.setString(3, changed.getType().name());
+					}
+					else {
+						prepared = valueInsert;
+						prepared.setInt(1, changed.getIndex());
+						prepared.setInt(2, changed.getPrecision());
+						prepared.setString(3, changed.getType().name());
+						prepared.setBigDecimal(4, changed.getValue());
+					}
+
+					int count = prepared.executeUpdate();
+
+					if (count != 1) {
+						throw new IllegalStateException("Beim Update von Kari wurden " + count + " Zeilen geändert!");
+					}
+					connection.commit();
+
 				}
-				connection.commit();
-
+				catch (SQLException | SecurityException | IllegalArgumentException e) {
+					throw new IllegalStateException(e);
+				}
 			}
-			catch (SQLException | NoSuchFieldException | SecurityException | IllegalArgumentException
-					| IllegalAccessException e) {
-				e.printStackTrace();
+			else if (evt.getSource() instanceof Wertung
+					&& Wertung.ERGEBNIS_CHANGE_PROPERTY.equals(evt.getPropertyName())) {
+				Wertung w = (Wertung) evt.getSource();
+				try {
+					updateWertung.setBigDecimal(1, w.getErgebnis());
+					updateWertung.setInt(2, w.getId());
+					int count = updateWertung.executeUpdate();
+
+					if (count != 1) {
+						throw new IllegalStateException("Beim Update von " + w
+								+ " wurden " + count + " Zeilen geändert!");
+					}
+				}
+				catch (SQLException e) {
+					throw new IllegalStateException(e);
+				}
 			}
 		}
 

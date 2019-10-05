@@ -1,5 +1,6 @@
 package de.kreth.vereinsmeisterschaftprog.data;
 
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.math.BigDecimal;
@@ -46,19 +47,22 @@ public class Value implements Cloneable {
 	}
 
 	public void setValue(double value) {
-		BigDecimal old = this.value;
-		this.value = BigDecimal.valueOf(value).setScale(precision);
-		pcs.firePropertyChange(identifier(), old, this.value);
+		setValue(BigDecimal.valueOf(value));
 	}
 
 	public void setValue(BigDecimal value) {
 		BigDecimal old = this.value;
 		this.value = value.setScale(precision);
-		pcs.firePropertyChange(identifier(), old, this.value);
+		PropertyChangeEvent ev = new PropertyChangeEvent(this, identifier(), old, this.value);
+		pcs.firePropertyChange(ev);
 	}
 
 	public int getIndex() {
 		return index;
+	}
+
+	public int getPrecision() {
+		return precision;
 	}
 
 	/**

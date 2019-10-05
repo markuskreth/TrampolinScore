@@ -8,7 +8,7 @@ public class WertungFactory {
 
 	private int anzahlHaltung = 4;
 
-	private int anzahlHd = 1;
+	private int anzahlHd = 2;
 
 	public WertungFactory() {
 	}
@@ -32,7 +32,8 @@ public class WertungFactory {
 		final List<Value> values = new ArrayList<>();
 
 		for (int i = 0; i < anzahlHaltung; i++) {
-			values.add(new Value(ValueType.HALTUNG, 3, i));
+			Value val = new Value(ValueType.HALTUNG, 3, i);
+			values.add(val);
 		}
 
 		for (int i = 0; i < anzahlHd; i++) {

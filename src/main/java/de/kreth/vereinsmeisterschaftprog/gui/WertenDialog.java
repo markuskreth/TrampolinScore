@@ -12,6 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
@@ -68,7 +70,13 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 		setTitle(wertung.getDurchgang() + " " + starterName);
 
 		this.wertung = wertung;
-
+		wertung.addPropertyChangeListener(this);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosed(WindowEvent e) {
+				wertung.removePropertyChangeListener(WertenDialog.this);
+			}
+		});
 		DecimalFormat df = new DecimalFormat("0.0#");
 
 		setBounds(100, 100, 655, 214);
@@ -98,23 +106,31 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 				});
 				panel.add(btnNamendern, BorderLayout.EAST);
 			}
+			panel.setRequestFocusEnabled(false);
 		}
 		{
 			JPanel panel = new JPanel();
 			contentPanel.add(panel, BorderLayout.CENTER);
 			GridBagLayout gbl_panel = new GridBagLayout();
 			gbl_panel.columnWidths = new int[] { 91, 91, 91, 91, 91, 91, 91, 0 };
-			gbl_panel.rowHeights = new int[] { 70, 70, 0, 0 };
+			gbl_panel.rowHeights = new int[] { 25, 25, 0, 0 };
 			gbl_panel.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 			gbl_panel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
 			panel.setLayout(gbl_panel);
-			int gridx = 0;
-			for (Value v : wertung.allValues()) {
 
+			int gridx = 0;
+			ValueType lastType = null;
+
+			final int bigGap = 15;
+			for (Value v : wertung.allValues()) {
+				int leftGap = 0;
+				if (lastType != null && lastType != v.getType()) {
+					leftGap = bigGap;
+				}
 				JLabel lblKari = new JLabel(createLabelTextFor(v));
 				GridBagConstraints gbc_lblSchwierigkeit = new GridBagConstraints();
 				gbc_lblSchwierigkeit.fill = GridBagConstraints.BOTH;
-				gbc_lblSchwierigkeit.insets = new Insets(0, 0, 5, 5);
+				gbc_lblSchwierigkeit.insets = new Insets(0, leftGap, 5, 2);
 				gbc_lblSchwierigkeit.gridx = gridx;
 				gbc_lblSchwierigkeit.gridy = 0;
 				panel.add(lblKari, gbc_lblSchwierigkeit);
@@ -124,7 +140,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 				txtKari.putClientProperty(Value.class, v);
 				GridBagConstraints gbc_txtKari1 = new GridBagConstraints();
 				gbc_txtKari1.fill = GridBagConstraints.HORIZONTAL;
-				gbc_txtKari1.insets = new Insets(0, 0, 5, 5);
+				gbc_txtKari1.insets = new Insets(0, leftGap, 5, 2);
 				gbc_txtKari1.gridx = gridx;
 				gbc_txtKari1.gridy = 1;
 				panel.add(txtKari, gbc_txtKari1);
@@ -133,13 +149,14 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 				txtKari.setColumns(10);
 				this.valueFields.add(txtKari);
 				gridx++;
+				lastType = v.getType();
 			}
 			{
 				JLabel lblErgebnis_2 = new JLabel("Ergebnis");
 				GridBagConstraints gbc_lblErgebnis_2 = new GridBagConstraints();
 				gbc_lblErgebnis_2.fill = GridBagConstraints.BOTH;
-				gbc_lblErgebnis_2.insets = new Insets(0, 0, 5, 0);
-				gbc_lblErgebnis_2.gridx = 6;
+				gbc_lblErgebnis_2.insets = new Insets(0, bigGap, 5, 0);
+				gbc_lblErgebnis_2.gridx = gridx;
 				gbc_lblErgebnis_2.gridy = 0;
 				panel.add(lblErgebnis_2, gbc_lblErgebnis_2);
 			}
@@ -148,9 +165,9 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 				lblErgebnis.setHorizontalAlignment(SwingConstants.CENTER);
 				lblErgebnis.setHorizontalTextPosition(SwingConstants.CENTER);
 				GridBagConstraints gbc_lblErgebnis = new GridBagConstraints();
-				gbc_lblErgebnis.insets = new Insets(0, 0, 5, 0);
-				gbc_lblErgebnis.fill = GridBagConstraints.HORIZONTAL;
-				gbc_lblErgebnis.gridx = 6;
+				gbc_lblErgebnis.fill = GridBagConstraints.BOTH;
+				gbc_lblErgebnis.insets = new Insets(0, bigGap, 5, 0);
+				gbc_lblErgebnis.gridx = gridx;
 				gbc_lblErgebnis.gridy = 1;
 				panel.add(lblErgebnis, gbc_lblErgebnis);
 			}
@@ -193,8 +210,14 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 		}
 
 		updateView();
+	}
 
-		valueFields.get(0).requestFocus();
+	@Override
+	public void setVisible(boolean b) {
+		super.setVisible(b);
+		if (b) {
+			valueFields.get(0).requestFocusInWindow();
+		}
 	}
 
 	private String createLabelTextFor(Value v) {
@@ -244,7 +267,6 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 		else
 			lblErgebnis.setText(converter.format(wertung.getErgebnis().doubleValue()));
 
-		valueFields.get(0).requestFocus();
 	}
 
 	private class DecimalFocusListener extends FocusAdapter {
@@ -267,22 +289,24 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 				double number = converter.convert(field.getText());
 				field.setText(converter.format(number));
 				kari.setValue(number);
-
 			}
 			catch (ParseException e1) {
 				markAsError(field);
 				e1.printStackTrace();
 			}
 
-			lblErgebnis.setText(converter.format(wertung.getErgebnis().doubleValue()));
 		}
 	}
 
 	@Override
+
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (evt.getPropertyName().matches(Ergebnis.STARTERNAME_CHANGE_PROPERTY)) {
+		if (Ergebnis.STARTERNAME_CHANGE_PROPERTY.equals(evt.getPropertyName())) {
 			starterName = evt.getNewValue().toString();
 			lblStarter.setText(starterName);
+		}
+		else if (Wertung.ERGEBNIS_CHANGE_PROPERTY.equals(evt.getPropertyName())) {
+			lblErgebnis.setText(converter.format(wertung.getErgebnis().doubleValue()));
 		}
 	}
 }

@@ -95,7 +95,7 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 	private void calculate() {
 		BigDecimal oldErgebnis = ergebnis;
 		ergebnis = WertungCalculatorFactory.calculate(this);
-		pcs.firePropertyChange(ERGEBNIS_CHANGE_PROPERTY, oldErgebnis, ergebnis);
+		pcs.firePropertyChange(new PropertyChangeEvent(this, ERGEBNIS_CHANGE_PROPERTY, oldErgebnis, ergebnis));
 	}
 
 	public BigDecimal getErgebnis() {
@@ -138,6 +138,9 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 	void setValues(List<Value> valueList) {
 		werte.forEach(w -> w.removePropertyChangeListener(this));
 		this.werte.clear();
+		if (valueList.isEmpty()) {
+			return;
+		}
 		List<String> identifiers = valueList.stream().map(v -> v.identifier()).collect(Collectors.toList());
 		int size = new HashSet<>(identifiers).size();
 		if (size < valueList.size()) {
@@ -157,10 +160,12 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 				throw new IllegalStateException("Kuer must have SCHWIERIGKEIT");
 			}
 		}
+		calculate();
 	}
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
+		pcs.firePropertyChange(evt);
 		calculate();
 	}
 }
