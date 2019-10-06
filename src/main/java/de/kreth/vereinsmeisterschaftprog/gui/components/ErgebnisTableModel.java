@@ -6,6 +6,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -14,16 +15,18 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.table.AbstractTableModel;
 
+import de.kreth.vereinsmeisterschaftprog.Factory;
 import de.kreth.vereinsmeisterschaftprog.business.WettkampfBusiness;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
 import de.kreth.vereinsmeisterschaftprog.data.Sortierung;
+import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
 class ErgebnisTableModel extends AbstractTableModel {
 
 	private static final long serialVersionUID = 2910124315519583475L;
 
-	private final String[] columnNames = { "Starter", "Pflicht", "Kür", "Gesamt", "Platz", "" };
+	private final List<String> columnNames = new ArrayList<>();
 
 	private final List<Ergebnis> data = new ArrayList<>();
 
@@ -39,6 +42,11 @@ class ErgebnisTableModel extends AbstractTableModel {
 
 	public ErgebnisTableModel(WettkampfBusiness business, Supplier<Durchgang> durchgangSupplier) {
 		super();
+		columnNames.add("Starter");
+		for (Durchgang d : Factory.getInstance().getDurchgaenge()) {
+			columnNames.add(d.getLabel());
+		}
+		columnNames.addAll(Arrays.asList("Gesamt", "Platz", ""));
 		this.business = business;
 		this.durchgangSupplier = durchgangSupplier;
 	}
@@ -69,7 +77,10 @@ class ErgebnisTableModel extends AbstractTableModel {
 
 			@Override
 			public void actionPerformed(ActionEvent ev) {
-				business.werteErgebnis(data.get(index), durchgangSupplier.get());
+				Ergebnis ergebnis = data.get(index);
+				Wertung wertung = ergebnis.getWertungen().stream()
+						.filter(w -> w.getDurchgang().equals(durchgangSupplier.get())).findFirst().orElseThrow();
+				business.werteErgebnis(ergebnis, wertung);
 			}
 		});
 		editButtons.add(b);
@@ -84,7 +95,7 @@ class ErgebnisTableModel extends AbstractTableModel {
 
 	@Override
 	public String getColumnName(int column) {
-		return columnNames[column];
+		return columnNames.get(column);
 	}
 
 	@Override
@@ -94,19 +105,19 @@ class ErgebnisTableModel extends AbstractTableModel {
 
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		if (columnIndex == 5)
+		if (columnIndex == columnNames.size() - 1)
 			return true;
 		return false;
 	}
 
 	@Override
 	public int getColumnCount() {
-		return columnNames.length;
+		return columnNames.size();
 	}
 
 	@Override
 	public Class<?> getColumnClass(int columnIndex) {
-		if (columnIndex == 5)
+		if (columnIndex == columnNames.size() - 1)
 			return JComponent.class;
 
 		return String.class;
@@ -116,31 +127,21 @@ class ErgebnisTableModel extends AbstractTableModel {
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		Ergebnis ergebnis = data.get(rowIndex);
 		Object value;
-		switch (columnIndex) {
-		case 0:
+		if (columnIndex == 0) {
 			value = ergebnis.getStarterName();
-			break;
-
-		case 1:
-			value = df.format(ergebnis.getPflicht().getErgebnis());
-			break;
-
-		case 2:
-			value = df.format(ergebnis.getKuer().getErgebnis());
-			break;
-
-		case 3:
-			value = df.format(ergebnis.getErgebnis());
-			break;
-		case 4:
-			value = ergebnis.getPlatz() + ".";
-			break;
-		case 5:
+		}
+		else if (columnIndex == columnNames.size() - 1) {
 			value = editButtons.get(rowIndex);
-			break;
-		default:
-			value = "";
-			break;
+		}
+		else if (columnIndex == columnNames.size() - 2) {
+			value = ergebnis.getPlatz() + ".";
+		}
+		else if (columnIndex == columnNames.size() - 3) {
+			value = df.format(ergebnis.getErgebnis());
+		}
+		else {
+			Wertung wertung = ergebnis.getWertungen().get(columnIndex - 1);
+			value = df.format(wertung.getErgebnis());
 		}
 
 		return value;

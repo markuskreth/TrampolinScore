@@ -4,6 +4,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import de.kreth.vereinsmeisterschaftprog.data.calculatoren.PlatzCalculator;
 
@@ -15,15 +18,15 @@ public class Ergebnis {
 
 	public static final String STARTERNAME_CHANGE_PROPERTY = Ergebnis.class.getName() + " Starter Name geändert!";
 
+	private final PropertyChangeSupport pcs;
+
+	private final List<Wertung> wertungen = new ArrayList<>();
+
 	private final int id;
 
 	private final int random;
 
 	private String starterName;
-
-	private Wertung pflicht;
-
-	private Wertung kuer;
 
 	private BigDecimal ergebnis;
 
@@ -31,9 +34,7 @@ public class Ergebnis {
 
 	private PlatzCalculator calc;
 
-	PropertyChangeSupport pcs;
-
-	public Ergebnis(int id, String starterName, PlatzCalculator calc, Wertung pflicht, Wertung kuer, int random) {
+	public Ergebnis(int id, String starterName, PlatzCalculator calc, int random, List<Wertung> wertungen) {
 
 		this.calc = calc;
 		this.random = random;
@@ -42,32 +43,27 @@ public class Ergebnis {
 		pcs = new PropertyChangeSupport(this);
 
 		ergebnis = BigDecimal.ZERO;
-		Wertung tmp;
-		if (Durchgang.PFLICHT.equals(pflicht.getDurchgang())) {
-			tmp = pflicht;
+		boolean existsPflicht = false;
+		boolean existsKuer = false;
+		for (Wertung w : wertungen) {
+			if (Durchgang.PFLICHT.equals(w.getDurchgang())) {
+				existsPflicht = true;
+			}
+			else if (Durchgang.KUER.equals(w.getDurchgang())) {
+				existsKuer = true;
+			}
 		}
-		else if (Durchgang.PFLICHT.equals(kuer.getDurchgang())) {
-			tmp = kuer;
-		}
-		else {
+		if (!existsPflicht) {
 			throw new IllegalArgumentException("No Pflichtuebung given!");
 		}
-		this.pflicht = tmp;
-
-		if (Durchgang.KUER.equals(pflicht.getDurchgang())) {
-			tmp = pflicht;
-		}
-		else if (Durchgang.KUER.equals(kuer.getDurchgang())) {
-			tmp = kuer;
-		}
-		else {
+		if (!existsKuer) {
 			throw new IllegalArgumentException("No Kueruebung given!");
 		}
-		this.kuer = tmp;
 
 		PflichtORKuerErgebnisChangeListener l = new PflichtORKuerErgebnisChangeListener();
-		pflicht.addPropertyChangeListener(Wertung.ERGEBNIS_CHANGE_PROPERTY, l);
-		kuer.addPropertyChangeListener(Wertung.ERGEBNIS_CHANGE_PROPERTY, l);
+		this.wertungen.addAll(wertungen);
+		this.wertungen.forEach(w -> w.addPropertyChangeListener(Wertung.ERGEBNIS_CHANGE_PROPERTY, l));
+
 		calc.addPropertyChangeListener(new PropertyChangeListener() {
 
 			@Override
@@ -86,12 +82,8 @@ public class Ergebnis {
 		return starterName;
 	}
 
-	public Wertung getPflicht() {
-		return pflicht;
-	}
-
-	public Wertung getKuer() {
-		return kuer;
+	public List<Wertung> getWertungen() {
+		return wertungen;
 	}
 
 	public PlatzCalculator getCalc() {
@@ -133,9 +125,12 @@ public class Ergebnis {
 
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
-			BigDecimal oldValue = ergebnis;
-			ergebnis = pflicht.getErgebnis().add(kuer.getErgebnis());
-			pcs.firePropertyChange(ERGEBNIS_CHANGE_PROPERTY, oldValue, ergebnis);
+			Optional<BigDecimal> result = wertungen.stream().map(w -> w.getErgebnis()).reduce(BigDecimal::add);
+			if (result.isPresent()) {
+				BigDecimal oldValue = ergebnis;
+				ergebnis = result.get();
+				pcs.firePropertyChange(ERGEBNIS_CHANGE_PROPERTY, oldValue, ergebnis);
+			}
 		}
 	}
 

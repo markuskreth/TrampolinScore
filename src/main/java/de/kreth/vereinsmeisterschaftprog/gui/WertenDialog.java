@@ -67,7 +67,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
 		this.starterName = starterName;
 
-		setTitle(wertung.getDurchgang() + " " + starterName);
+		setTitle(wertung.getDurchgang().getLabel() + ": " + starterName);
 
 		this.wertung = wertung;
 		wertung.addPropertyChangeListener(this);
@@ -210,6 +210,7 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 		}
 
 		updateView();
+		pack();
 	}
 
 	@Override

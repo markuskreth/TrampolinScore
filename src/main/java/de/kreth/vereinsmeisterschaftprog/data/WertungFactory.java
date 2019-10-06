@@ -19,16 +19,11 @@ public class WertungFactory {
 			if (ergebnis.getErgebnis().doubleValue() > 0.0) {
 				throw new IllegalStateException("No Ergebnis must have values");
 			}
-
-			Wertung pflicht = ergebnis.getPflicht();
-			setup(pflicht, false);
-
-			Wertung kuer = ergebnis.getKuer();
-			setup(kuer, true);
+			ergebnis.getWertungen().forEach(w -> setup(w));
 		}
 	}
 
-	public synchronized void setup(Wertung wertung, boolean withSchwierigkeit) {
+	public synchronized void setup(Wertung wertung) {
 		final List<Value> values = new ArrayList<>();
 
 		for (int i = 0; i < anzahlHaltung; i++) {
@@ -40,7 +35,7 @@ public class WertungFactory {
 			values.add(new Value(ValueType.HD, 3, i));
 		}
 
-		if (withSchwierigkeit) {
+		if (Durchgang.KUER.equals(wertung.getDurchgang())) {
 			values.add(new Value(ValueType.SCHWIERIGKEIT, 1));
 		}
 		wertung.setValues(values);

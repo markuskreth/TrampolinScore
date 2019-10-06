@@ -58,11 +58,11 @@ public class DatabaseTableCreator {
 	private String[] version4 = {
 			"CREATE TABLE VERSION (value INTEGER);",
 			"INSERT INTO VERSION VALUES(4);",
-			"CREATE TABLE WERTUNG (id INTEGER IDENTITY, durchgang varchar(255) NOT NULL, ergebnis REAL);",
+			"CREATE TABLE WERTUNG (id INTEGER IDENTITY, durchgang varchar(255) NOT NULL, ergebnis_id INTEGER NOT NULL, ergebnis REAL);",
 			"CREATE TABLE VALUE (wertung INTEGER, ergebnis_index INTEGER, precision INTEGER, type varchar(255) NOT NULL, value REAL);",
 			"ALTER TABLE VALUE ADD PRIMARY KEY(wertung,type, ergebnis_index);",
 			"CREATE TABLE GRUPPE (id INTEGER IDENTITY, name varchar(255) NOT NULL, beschreibung varchar(255) NULL)",
-			"CREATE TABLE ERGEBNIS (id INTEGER IDENTITY, startername VARCHAR(255) NOT NULL, wettkampf VARCHAR(25), pflicht INTEGER, kuer INTEGER, ergebnis REAL, platz INTEGER, random INTEGER, FOREIGN KEY (pflicht) REFERENCES wertung(id), FOREIGN KEY (kuer) REFERENCES wertung(id));"
+			"CREATE TABLE ERGEBNIS (id INTEGER IDENTITY, startername VARCHAR(255) NOT NULL, wettkampf VARCHAR(25), ergebnis REAL, platz INTEGER, random INTEGER, FOREIGN KEY (pflicht) REFERENCES wertung(id), FOREIGN KEY (kuer) REFERENCES wertung(id));"
 	};
 
 }

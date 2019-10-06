@@ -38,7 +38,7 @@ public class WertungCalculatorTest {
 	public void testKrummeWerte() {
 
 		Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
-		wf.setup(pflicht, false);
+		wf.setup(pflicht);
 		pflicht.get(ValueType.HALTUNG, 0).setValue(5.8);
 		pflicht.get(ValueType.HALTUNG, 1).setValue(5.7);
 		pflicht.get(ValueType.HALTUNG, 2).setValue(5.6);
@@ -54,7 +54,7 @@ public class WertungCalculatorTest {
 	public void testCalculateCompleteJudges() {
 
 		Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
-		wf.setup(pflicht, false);
+		wf.setup(pflicht);
 		pflicht.get(ValueType.HALTUNG, 0).setValue(7.1);
 		pflicht.get(ValueType.HALTUNG, 1).setValue(7.2);
 		pflicht.get(ValueType.HALTUNG, 2).setValue(7.3);
@@ -63,7 +63,7 @@ public class WertungCalculatorTest {
 		pflicht.get(ValueType.HD, 1).setValue(9.5);
 
 		Wertung kuer = new Wertung(1, Durchgang.KUER);
-		wf.setup(kuer, true);
+		wf.setup(kuer);
 		kuer.get(ValueType.HALTUNG, 0).setValue(7.1);
 		kuer.get(ValueType.HALTUNG, 1).setValue(7.2);
 		kuer.get(ValueType.HALTUNG, 2).setValue(7.3);
@@ -89,7 +89,7 @@ public class WertungCalculatorTest {
 		wf.setAnzahlHd(1);
 
 		Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
-		wf.setup(pflicht, false);
+		wf.setup(pflicht);
 		pflicht.get(ValueType.HALTUNG, 0).setValue(7.1);
 		pflicht.get(ValueType.HALTUNG, 1).setValue(7.2);
 		pflicht.get(ValueType.HALTUNG, 2).setValue(7.3);
@@ -99,7 +99,7 @@ public class WertungCalculatorTest {
 		assertEquals(BigDecimal.valueOf(22.8).setScale(3), erg);
 
 		Wertung kuer = new Wertung(1, Durchgang.KUER);
-		wf.setup(kuer, true);
+		wf.setup(kuer);
 		kuer.get(ValueType.HALTUNG, 0).setValue(7.1);
 		kuer.get(ValueType.HALTUNG, 1).setValue(7.2);
 		kuer.get(ValueType.HALTUNG, 2).setValue(7.3);
@@ -114,7 +114,7 @@ public class WertungCalculatorTest {
 		assertEquals(BigDecimal.valueOf(43.2).setScale(3), erg);
 
 		pflicht = new Wertung(1, Durchgang.PFLICHT);
-		wf.setup(pflicht, false);
+		wf.setup(pflicht);
 		pflicht.get(ValueType.HALTUNG, 0).setValue(7.1);
 		pflicht.get(ValueType.HALTUNG, 1).setValue(7.2);
 		pflicht.get(ValueType.HALTUNG, 2).setValue(7.7);
@@ -135,13 +135,13 @@ public class WertungCalculatorTest {
 		wf.setAnzahlHd(1);
 
 		Wertung pflicht = new Wertung(1, Durchgang.PFLICHT);
-		wf.setup(pflicht, false);
+		wf.setup(pflicht);
 		pflicht.get(ValueType.HALTUNG, 0).setValue(7.1);
 		pflicht.get(ValueType.HALTUNG, 1).setValue(7.4);
 		pflicht.get(ValueType.HD, 0).setValue(8.7);
 
 		Wertung kuer = new Wertung(1, Durchgang.KUER);
-		wf.setup(kuer, true);
+		wf.setup(kuer);
 		kuer.get(ValueType.HALTUNG, 0).setValue(7.1);
 		kuer.get(ValueType.HALTUNG, 1).setValue(7.7);
 		kuer.get(ValueType.HD, 0).setValue(8.8);

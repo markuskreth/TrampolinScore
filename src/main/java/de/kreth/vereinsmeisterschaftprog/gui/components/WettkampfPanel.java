@@ -1,6 +1,7 @@
 package de.kreth.vereinsmeisterschaftprog.gui.components;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -8,12 +9,15 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import de.kreth.vereinsmeisterschaftprog.Factory;
 import de.kreth.vereinsmeisterschaftprog.business.WettkampfBusiness;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
@@ -59,7 +63,16 @@ public class WettkampfPanel extends JPanel {
 		JLabel lblDurchgang = new JLabel("Durchgang");
 		panel.add(lblDurchgang);
 
-		comboBox_Durchgang.setModel(new DefaultComboBoxModel<Durchgang>(Durchgang.values()));
+		comboBox_Durchgang.setModel(
+				new DefaultComboBoxModel<Durchgang>(Factory.getInstance().getDurchgaenge().toArray(new Durchgang[0])));
+		comboBox_Durchgang.setRenderer(new ListCellRenderer<Durchgang>() {
+
+			@Override
+			public Component getListCellRendererComponent(JList<? extends Durchgang> list, Durchgang value, int index,
+					boolean isSelected, boolean cellHasFocus) {
+				return new JLabel(value.getLabel());
+			}
+		});
 		panel.add(comboBox_Durchgang);
 
 		JLabel lblSortierung = new JLabel("Sortierung");
@@ -82,12 +95,12 @@ public class WettkampfPanel extends JPanel {
 		table.setModel(tableModel);
 
 		TableColumnModel columnModel = table.getColumnModel();
-		TableColumn btnColumn = columnModel.getColumn(5);
+		TableColumn btnColumn = columnModel.getColumn(getButtonColumnIndex());
 		int width = 50;
 		for (int i = 0; i < columnModel.getColumnCount(); i++) {
 			if (i == 0)
 				columnModel.getColumn(i).setPreferredWidth(width * 3);
-			else if (i == 5)
+			else if (i == getButtonColumnIndex())
 				columnModel.getColumn(i).setPreferredWidth((int) (width * 1.5));
 			else
 				columnModel.getColumn(i).setPreferredWidth(width);
@@ -97,6 +110,10 @@ public class WettkampfPanel extends JPanel {
 		JScrollPane scroller = new JScrollPane(table);
 		add(scroller, BorderLayout.CENTER);
 
+	}
+
+	public int getButtonColumnIndex() {
+		return tableModel.getColumnCount() - 1;
 	}
 
 	public void setWettkampf(Wettkampf wettkampf) {

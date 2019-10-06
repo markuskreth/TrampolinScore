@@ -32,6 +32,28 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 
 	private int id;
 
+	public Wertung(int id, Durchgang durchgang) {
+		this.id = id;
+		this.durchgang = durchgang;
+		this.pcs = new PropertyChangeSupport(this);
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	/**
+	 * Unmodifiable!
+	 * @return
+	 */
+	public List<Value> allValues() {
+		return Collections.unmodifiableList(werte);
+	}
+
+	public List<Value> getByType(ValueType type) {
+		return werte.stream().filter(v -> v.getType() == type).sorted(this::compare).collect(Collectors.toList());
+	}
+
 	@Override
 	public String toString() {
 		List<Value> sorted = new ArrayList<>(werte);
@@ -68,28 +90,6 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 
 		clone.werte.forEach(wert -> wert.addPropertyChangeListener(ev -> clone.calculate()));
 		return clone;
-	}
-
-	public Wertung(int id, Durchgang durchgang) {
-		this.id = id;
-		this.durchgang = durchgang;
-		this.pcs = new PropertyChangeSupport(this);
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	/**
-	 * Unmodifiable!
-	 * @return
-	 */
-	public List<Value> allValues() {
-		return Collections.unmodifiableList(werte);
-	}
-
-	public List<Value> getByType(ValueType type) {
-		return werte.stream().filter(v -> v.getType() == type).sorted(this::compare).collect(Collectors.toList());
 	}
 
 	private void calculate() {

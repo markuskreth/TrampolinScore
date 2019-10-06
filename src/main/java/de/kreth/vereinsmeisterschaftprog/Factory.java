@@ -1,5 +1,8 @@
 package de.kreth.vereinsmeisterschaftprog;
 
+import java.util.List;
+
+import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.WertungFactory;
 import de.kreth.vereinsmeisterschaftprog.db.Persister;
 
@@ -16,4 +19,6 @@ public abstract class Factory {
 	public abstract Persister getPersister();
 
 	public abstract WertungFactory getWertungFactory();
+
+	public abstract List<Durchgang> getDurchgaenge();
 }

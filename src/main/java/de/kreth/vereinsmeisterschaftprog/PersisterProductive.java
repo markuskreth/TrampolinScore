@@ -44,13 +44,10 @@ class PersisterProductive implements Persister {
 			while (rs.next()) {
 				int id = rs.getInt("id");
 				String starterName = rs.getString("startername");
-				int pflichtId = rs.getInt("pflicht");
-				int kuerId = rs.getInt("kuer");
 				int random = rs.getInt("random");
-				Wertung pflicht = getWertung(pflichtId);
-				Wertung kuer = getWertung(kuerId);
+				List<Wertung> wertungen = getWertung(id);
 
-				Ergebnis e = new Ergebnis(id, starterName, wk, kuer, pflicht, random);
+				Ergebnis e = new Ergebnis(id, starterName, wk, random, wertungen);
 				e.addPropertyChangeListener(new PersisterErgebnisChangeListener(e));
 				wk.add(e);
 			}
@@ -61,17 +58,21 @@ class PersisterProductive implements Persister {
 		}
 	}
 
-	private Wertung getWertung(int id) throws SQLException {
+	private List<Wertung> getWertung(int ergebnis_id) throws SQLException {
 
-		ResultSet rs = hsql.executeQuery("SELECT * FROM wertung where id=" + id);
-		rs.next();
-		String durchgString = rs.getString("durchgang");
-		Durchgang durchgang = Durchgang.valueOf(durchgString);
-		Wertung w = new Wertung(rs.getInt("id"), durchgang);
-		fillValues(w);
-		w.addPropertyChangeListener(new PeristerWertungChangeListener(w));
+		List<Wertung> wertungen = new ArrayList<>();
 
-		return w;
+		ResultSet rs = hsql.executeQuery("SELECT * FROM wertung where ergebnis_id=" + ergebnis_id);
+		while (rs.next()) {
+			String durchgString = rs.getString("durchgang");
+			Durchgang durchgang = Durchgang.valueOf(durchgString);
+			Wertung w = new Wertung(rs.getInt("id"), durchgang);
+			fillValues(w);
+			w.addPropertyChangeListener(new PeristerWertungChangeListener(w));
+			wertungen.add(w);
+		}
+
+		return wertungen;
 	}
 
 	private void fillValues(Wertung w) throws SQLException {
@@ -109,41 +110,24 @@ class PersisterProductive implements Persister {
 		Ergebnis result = null;
 		try {
 
-			Wertung pflicht = null;
-			Wertung kuer = null;
-
-			hsql.executeUpdate("INSERT INTO wertung (durchgang) VALUES('" + Durchgang.PFLICHT + "')",
-					Statement.RETURN_GENERATED_KEYS);
-			ResultSet generatedKeys = hsql.getGeneratedKeys();
-			if (generatedKeys.next()) {
-				int id = generatedKeys.getInt(1);
-				pflicht = new Wertung(id, Durchgang.PFLICHT);
-				new PeristerWertungChangeListener(pflicht);
-			}
-
-			hsql.executeUpdate("INSERT INTO wertung (durchgang) VALUES('" + Durchgang.KUER + "')",
-					Statement.RETURN_GENERATED_KEYS);
-			generatedKeys = hsql.getGeneratedKeys();
-
-			if (generatedKeys.next()) {
-				int id = generatedKeys.getInt(1);
-				kuer = new Wertung(id, Durchgang.KUER);
-				new PeristerWertungChangeListener(kuer);
-			}
-
-			if (pflicht == null || kuer == null)
-				throw new IllegalStateException(
-						"Db-Fehler! Konnte Pflicht oder Kür nicht anlegen! Pflicht=" + pflicht + " Kür=" + kuer);
+			ResultSet generatedKeys;
 
 			int rand = random.nextInt();
-			hsql.executeUpdate("INSERT INTO ergebnis (startername, wettkampf, pflicht, kuer, random) " + "VALUES('"
-					+ starterName + "', '" + wettkampf.getGruppe() + "', " + pflicht.getId()
-					+ ", " + kuer.getId() + ", " + rand + ")", Statement.RETURN_GENERATED_KEYS);
+			hsql.executeUpdate("INSERT INTO ergebnis (startername, wettkampf, random) " + "VALUES('"
+					+ starterName + "', '" + wettkampf.getGruppe() + "', "
+					+ rand + ")", Statement.RETURN_GENERATED_KEYS);
 			generatedKeys = hsql.getGeneratedKeys();
 
 			if (generatedKeys.next()) {
+
 				int id = generatedKeys.getInt(1);
-				result = new Ergebnis(id, starterName, wettkampf, kuer, pflicht, rand);
+				List<Durchgang> durchgaenge = Factory.getInstance().getDurchgaenge();
+				List<Wertung> wertungen = new ArrayList<>();
+				for (Durchgang d : durchgaenge) {
+					wertungen.add(create(d, id));
+				}
+
+				result = new Ergebnis(id, starterName, wettkampf, rand, wertungen);
 				result.addPropertyChangeListener(new PersisterErgebnisChangeListener(result));
 			}
 
@@ -153,6 +137,23 @@ class PersisterProductive implements Persister {
 		}
 
 		return result;
+	}
+
+	private Wertung create(Durchgang durchgang, int ergebnisId) throws SQLException {
+		hsql.executeUpdate("INSERT INTO wertung (durchgang, ergebnis_id) VALUES('" + durchgang + "', "
+				+ ergebnisId + ")",
+				Statement.RETURN_GENERATED_KEYS);
+		ResultSet generatedKeys = hsql.getGeneratedKeys();
+		Wertung wertung = null;
+		if (generatedKeys.next()) {
+			int id = generatedKeys.getInt(1);
+			wertung = new Wertung(id, durchgang);
+			new PeristerWertungChangeListener(wertung);
+		}
+		else {
+			throw new IllegalStateException("Unable to create Wertung for Durchgang=" + durchgang);
+		}
+		return wertung;
 	}
 
 	@Override

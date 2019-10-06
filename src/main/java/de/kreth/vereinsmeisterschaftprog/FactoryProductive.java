@@ -1,5 +1,10 @@
 package de.kreth.vereinsmeisterschaftprog;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.WertungFactory;
 import de.kreth.vereinsmeisterschaftprog.db.Persister;
 
@@ -23,6 +28,12 @@ public class FactoryProductive extends Factory {
 	@Override
 	public WertungFactory getWertungFactory() {
 		return wertungFactory;
+	}
+
+	@Override
+	public List<Durchgang> getDurchgaenge() {
+		List<Durchgang> list = Arrays.asList(Durchgang.PFLICHT, Durchgang.KUER);
+		return Collections.unmodifiableList(list);
 	}
 
 }
