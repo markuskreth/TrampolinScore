@@ -52,6 +52,9 @@ public class WertungCalculatorFactory {
 				break;
 			}
 		}
+
+		result = result.add(new MaxValueCalculator(ValueType.DREISPRUNG).calculate(wertung));
+		result = result.add(new MaxValueCalculator(ValueType.SEILSPRINGEN).calculate(wertung));
 		return result;
 	}
 

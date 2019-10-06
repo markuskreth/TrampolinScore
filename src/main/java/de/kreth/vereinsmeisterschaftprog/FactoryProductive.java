@@ -32,7 +32,7 @@ public class FactoryProductive extends Factory {
 
 	@Override
 	public List<Durchgang> getDurchgaenge() {
-		List<Durchgang> list = Arrays.asList(Durchgang.PFLICHT, Durchgang.KUER);
+		List<Durchgang> list = Arrays.asList(Durchgang.values());
 		return Collections.unmodifiableList(list);
 	}
 

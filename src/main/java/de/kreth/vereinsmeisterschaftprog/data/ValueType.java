@@ -6,5 +6,7 @@ public enum ValueType {
 	HD,
 	SCHWIERIGKEIT,
 	SYNCHRON,
+	SEILSPRINGEN,
+	DREISPRUNG
 //	ERGEBNIS
 }

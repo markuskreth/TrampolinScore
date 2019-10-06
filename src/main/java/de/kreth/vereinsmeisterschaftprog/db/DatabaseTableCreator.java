@@ -44,10 +44,8 @@ public class DatabaseTableCreator {
 		switch (version) {
 		case 0:
 		case 5:
-
-			for (String sql : version4) {
-				hsql.execute(sql);
-			}
+			String[] allSql = version4;
+			execute(allSql);
 
 			break;
 		default:
@@ -55,14 +53,25 @@ public class DatabaseTableCreator {
 		}
 	}
 
+	private void execute(String[] allSql) throws SQLException {
+
+		for (String sql : allSql) {
+			try {
+				hsql.execute(sql);
+			}
+			catch (SQLException e) {
+				throw new SQLException("Error in SQL: " + sql, e);
+			}
+		}
+	}
+
 	private String[] version4 = {
 			"CREATE TABLE VERSION (value INTEGER);",
 			"INSERT INTO VERSION VALUES(4);",
-			"CREATE TABLE WERTUNG (id INTEGER IDENTITY, durchgang varchar(255) NOT NULL, ergebnis_id INTEGER NOT NULL, ergebnis REAL);",
-			"CREATE TABLE VALUE (wertung INTEGER, ergebnis_index INTEGER, precision INTEGER, type varchar(255) NOT NULL, value REAL);",
-			"ALTER TABLE VALUE ADD PRIMARY KEY(wertung,type, ergebnis_index);",
-			"CREATE TABLE GRUPPE (id INTEGER IDENTITY, name varchar(255) NOT NULL, beschreibung varchar(255) NULL)",
-			"CREATE TABLE ERGEBNIS (id INTEGER IDENTITY, startername VARCHAR(255) NOT NULL, wettkampf VARCHAR(25), ergebnis REAL, platz INTEGER, random INTEGER, FOREIGN KEY (pflicht) REFERENCES wertung(id), FOREIGN KEY (kuer) REFERENCES wertung(id));"
+			"CREATE TABLE ERGEBNIS (id INTEGER IDENTITY, startername VARCHAR(255) NOT NULL, wettkampf VARCHAR(25), ergebnis REAL, platz INTEGER, random INTEGER);",
+			"CREATE TABLE WERTUNG (id INTEGER IDENTITY, durchgang varchar(255) NOT NULL, ergebnis_id INTEGER NOT NULL, ergebnis REAL, FOREIGN KEY (ergebnis_id) REFERENCES ERGEBNIS(id));",
+			"CREATE TABLE VALUE (wertung INTEGER, ergebnis_index INTEGER, precision INTEGER, type varchar(255) NOT NULL, value REAL"
+					+ ", FOREIGN KEY (wertung) REFERENCES WERTUNG(id), PRIMARY KEY (wertung,ergebnis_index));",
+			"CREATE TABLE GRUPPE (id INTEGER IDENTITY, name varchar(255) NOT NULL, beschreibung varchar(255) NULL)"
 	};
-
 }

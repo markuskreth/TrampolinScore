@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JOptionPane;
+
 import de.kreth.vereinsmeisterschaftprog.Factory;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
 import de.kreth.vereinsmeisterschaftprog.data.Gruppe;
@@ -66,8 +68,10 @@ public class MainFrameBusiness {
 		}
 		else {
 			if (gruppen.isEmpty()) {
-				while (gruppen.isEmpty()) {
-					addPflicht();
+				addPflicht();
+				if (gruppen.isEmpty()) {
+					JOptionPane.showMessageDialog(null, "Es ist keine Gruppe vorhanden, Programm wird beendet.");
+					System.exit(0);
 				}
 			}
 			else {

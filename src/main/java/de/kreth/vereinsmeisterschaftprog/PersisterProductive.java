@@ -108,15 +108,24 @@ class PersisterProductive implements Persister {
 	public Ergebnis createErgebnis(String starterName, Wettkampf wettkampf) {
 
 		Ergebnis result = null;
+
+		int rand = random.nextInt();
+		String sql = "INSERT INTO ergebnis (startername, wettkampf, random) VALUES(?, ?, ?)";
+		Connection connection;
 		try {
+			connection = hsql.getConnection();
+		}
+		catch (SQLException e1) {
+			throw new IllegalStateException("Unable to connect to database", e1);
+		}
 
-			ResultSet generatedKeys;
+		try (PreparedStatement stm = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-			int rand = random.nextInt();
-			hsql.executeUpdate("INSERT INTO ergebnis (startername, wettkampf, random) " + "VALUES('"
-					+ starterName + "', '" + wettkampf.getGruppe() + "', "
-					+ rand + ")", Statement.RETURN_GENERATED_KEYS);
-			generatedKeys = hsql.getGeneratedKeys();
+			stm.setString(1, starterName);
+			stm.setString(2, wettkampf.getGruppe().toString());
+			stm.setInt(3, rand);
+			stm.executeUpdate();
+			ResultSet generatedKeys = stm.getGeneratedKeys();
 
 			if (generatedKeys.next()) {
 
@@ -130,29 +139,41 @@ class PersisterProductive implements Persister {
 				result = new Ergebnis(id, starterName, wettkampf, rand, wertungen);
 				result.addPropertyChangeListener(new PersisterErgebnisChangeListener(result));
 			}
+			else {
+				throw new IllegalStateException("No id was generated for Ergebnis " + starterName);
+			}
 
 		}
 		catch (SQLException e) {
-			e.printStackTrace();
+			throw new IllegalStateException("Unable to chreate Database Ergebnis for " + starterName, e);
 		}
 
 		return result;
 	}
 
 	private Wertung create(Durchgang durchgang, int ergebnisId) throws SQLException {
-		hsql.executeUpdate("INSERT INTO wertung (durchgang, ergebnis_id) VALUES('" + durchgang + "', "
-				+ ergebnisId + ")",
-				Statement.RETURN_GENERATED_KEYS);
-		ResultSet generatedKeys = hsql.getGeneratedKeys();
+		String sql = "INSERT INTO wertung (durchgang, ergebnis_id) VALUES('" + durchgang + "', "
+				+ ergebnisId + ")";
 		Wertung wertung = null;
-		if (generatedKeys.next()) {
-			int id = generatedKeys.getInt(1);
-			wertung = new Wertung(id, durchgang);
-			new PeristerWertungChangeListener(wertung);
+		Connection con = hsql.getConnection();
+		try (Statement stm = con.createStatement()) {
+
+			stm.executeUpdate(sql,
+					Statement.RETURN_GENERATED_KEYS);
+
+			try (ResultSet generatedKeys = stm.getGeneratedKeys()) {
+
+				if (generatedKeys.next()) {
+					int id = generatedKeys.getInt(1);
+					wertung = new Wertung(id, durchgang);
+					new PeristerWertungChangeListener(wertung);
+				}
+				else {
+					throw new IllegalStateException("Unable to create Wertung for Durchgang=" + durchgang);
+				}
+			}
 		}
-		else {
-			throw new IllegalStateException("Unable to create Wertung for Durchgang=" + durchgang);
-		}
+
 		return wertung;
 	}
 
@@ -301,7 +322,7 @@ class PersisterProductive implements Persister {
 			try {
 				this.connection = hsql.getConnection();
 				selectCount = connection.prepareStatement("select count(*) FROM VALUE WHERE wertung=" + wertung.getId()
-						+ " AND ergebnis_index=? AND type=?");
+						+ " AND type=?");
 				valueUpdate = connection.prepareStatement("UPDATE VALUE SET value=? WHERE wertung=" + wertung.getId()
 						+ " AND ergebnis_index=? AND type=?");
 				valueInsert = connection.prepareStatement(
@@ -323,8 +344,7 @@ class PersisterProductive implements Persister {
 
 					PreparedStatement prepared;
 
-					selectCount.setInt(1, changed.getIndex());
-					selectCount.setString(2, changed.getType().name());
+					selectCount.setString(1, changed.getType().name());
 					ResultSet rs = selectCount.executeQuery();
 
 					boolean exists = rs.next() && rs.getInt(1) > 0;
