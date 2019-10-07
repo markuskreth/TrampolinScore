@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import de.kreth.hsqldbcreator.HsqlCreator;
+import javax.sql.DataSource;
+
+import de.kreth.dbmanager.DatabaseType;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
 import de.kreth.vereinsmeisterschaftprog.data.Gruppe;
@@ -29,18 +31,22 @@ class PersisterProductive implements Persister {
 
 	private final Random random = new Random(System.currentTimeMillis());
 
-	private HsqlCreator hsql;
+	private final DataSource dataSource;
 
-	public PersisterProductive() {
-		hsql = HsqlCreator.getInstance();
-		DatabaseTableCreator creator = new DatabaseTableCreator();
+	public PersisterProductive(DataSource dataSource) {
+		this.dataSource = dataSource;
+
+		DatabaseTableCreator creator = new DatabaseTableCreator(this.dataSource, DatabaseType.HSQLDB);
 		creator.checkVersion();
 	}
 
 	@Override
 	public void fillWithStartern(Wettkampf wk) {
-		try {
-			ResultSet rs = hsql.executeQuery("SELECT * from ergebnis where wettkampf='" + wk.getGruppe() + "'");
+		try (Connection conn = dataSource.getConnection();
+				PreparedStatement stm = conn
+						.prepareStatement("SELECT * from ergebnis where wettkampf=?")) {
+			stm.setString(1, wk.getGruppe().getName());
+			ResultSet rs = stm.executeQuery();
 			while (rs.next()) {
 				int id = rs.getInt("id");
 				String starterName = rs.getString("startername");
@@ -62,21 +68,25 @@ class PersisterProductive implements Persister {
 
 		List<Wertung> wertungen = new ArrayList<>();
 
-		ResultSet rs = hsql.executeQuery("SELECT * FROM wertung where ergebnis_id=" + ergebnis_id);
-		while (rs.next()) {
-			String durchgString = rs.getString("durchgang");
-			Durchgang durchgang = Durchgang.valueOf(durchgString);
-			Wertung w = new Wertung(rs.getInt("id"), durchgang);
-			fillValues(w);
-			w.addPropertyChangeListener(new PeristerWertungChangeListener(w));
-			wertungen.add(w);
+		try (Connection conn = dataSource.getConnection();
+				PreparedStatement stm = conn.prepareStatement("SELECT * FROM wertung where ergebnis_id=?")) {
+			stm.setInt(1, ergebnis_id);
+			ResultSet rs = stm.executeQuery();
+			while (rs.next()) {
+				String durchgString = rs.getString("durchgang");
+				Durchgang durchgang = Durchgang.valueOf(durchgString);
+				Wertung w = new Wertung(rs.getInt("id"), durchgang);
+				fillValues(w, stm);
+				w.addPropertyChangeListener(new PeristerWertungChangeListener(w));
+				wertungen.add(w);
+			}
 		}
 
 		return wertungen;
 	}
 
-	private void fillValues(Wertung w) throws SQLException {
-		ResultSet rs = hsql.executeQuery("SELECT * FROM VALUE WHERE wertung=" + w.getId());
+	private void fillValues(Wertung w, Statement stm) throws SQLException {
+		ResultSet rs = stm.executeQuery("SELECT * FROM VALUE WHERE wertung=" + w.getId());
 		List<Value> werte = new ArrayList<>();
 
 		while (rs.next()) {
@@ -111,15 +121,9 @@ class PersisterProductive implements Persister {
 
 		int rand = random.nextInt();
 		String sql = "INSERT INTO ergebnis (startername, wettkampf, random) VALUES(?, ?, ?)";
-		Connection connection;
-		try {
-			connection = hsql.getConnection();
-		}
-		catch (SQLException e1) {
-			throw new IllegalStateException("Unable to connect to database", e1);
-		}
 
-		try (PreparedStatement stm = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+		try (Connection connection = dataSource.getConnection();
+				PreparedStatement stm = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
 			stm.setString(1, starterName);
 			stm.setString(2, wettkampf.getGruppe().toString());
@@ -155,8 +159,8 @@ class PersisterProductive implements Persister {
 		String sql = "INSERT INTO wertung (durchgang, ergebnis_id) VALUES('" + durchgang + "', "
 				+ ergebnisId + ")";
 		Wertung wertung = null;
-		Connection con = hsql.getConnection();
-		try (Statement stm = con.createStatement()) {
+
+		try (Connection con = dataSource.getConnection(); Statement stm = con.createStatement()) {
 
 			stm.executeUpdate(sql,
 					Statement.RETURN_GENERATED_KEYS);
@@ -180,11 +184,11 @@ class PersisterProductive implements Persister {
 	@Override
 	public Gruppe createPflicht(String name, String Beschreibung) {
 		Gruppe result = Gruppe.INVALID;
-		try {
-			hsql.executeUpdate("INSERT INTO GRUPPE (NAME, BESCHREIBUNG) VALUES('" + name + "','" + Beschreibung + "')",
+		try (Connection con = dataSource.getConnection(); Statement stm = con.createStatement()) {
+			stm.executeUpdate("INSERT INTO GRUPPE (NAME, BESCHREIBUNG) VALUES('" + name + "','" + Beschreibung + "')",
 					Statement.RETURN_GENERATED_KEYS);
 
-			ResultSet generatedKeys = hsql.getGeneratedKeys();
+			ResultSet generatedKeys = stm.getGeneratedKeys();
 			if (generatedKeys.next()) {
 				int id = generatedKeys.getInt(1);
 				result = new Gruppe(id, name, Beschreibung);
@@ -200,8 +204,8 @@ class PersisterProductive implements Persister {
 	public List<Gruppe> loadPflichten() {
 		List<Gruppe> result = new ArrayList<>();
 		String sql = "SELECT * FROM GRUPPE";
-		try {
-			ResultSet rs = hsql.executeQuery(sql);
+		try (Connection con = dataSource.getConnection(); Statement stm = con.createStatement()) {
+			ResultSet rs = stm.executeQuery(sql);
 			while (rs.next()) {
 				int id = rs.getInt("ID");
 				String name = rs.getString("NAME");
@@ -220,62 +224,52 @@ class PersisterProductive implements Persister {
 
 		private Ergebnis ergebnis;
 
-		private PreparedStatement stmPunkteUpdate;
+		private String stmPunkteUpdate;
 
-		private PreparedStatement stmPlatzUpdate;
+		private String stmPlatzUpdate;
 
-		private Connection connection;
-
-		private PreparedStatement stmNameUpdate;
+		private String stmNameUpdate;
 
 		public PersisterErgebnisChangeListener(Ergebnis ergebnis) {
 			super();
 			this.ergebnis = ergebnis;
-			try {
-				this.connection = hsql.getConnection();
-				stmPunkteUpdate = connection
-						.prepareStatement("UPDATE ergebnis SET ERGEBNIS=? WHERE ID=" + ergebnis.getId());
-				stmPlatzUpdate = connection
-						.prepareStatement("UPDATE ergebnis SET PLATZ=? WHERE ID=" + ergebnis.getId());
-				stmNameUpdate = connection
-						.prepareStatement("UPDATE ergebnis SET startername=? WHERE ID=" + ergebnis.getId());
-			}
-			catch (SQLException e) {
-				e.printStackTrace();
-			}
+			stmPunkteUpdate = "UPDATE ergebnis SET ERGEBNIS=? WHERE ID=" + ergebnis.getId();
+			stmPlatzUpdate = "UPDATE ergebnis SET PLATZ=? WHERE ID=" + ergebnis.getId();
+			stmNameUpdate = "UPDATE ergebnis SET startername=? WHERE ID=" + ergebnis.getId();
+
 		}
 
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 
 			if (evt.getPropertyName().matches(Ergebnis.ERGEBNIS_CHANGE_PROPERTY)) {
-				try {
-					stmPunkteUpdate.setBigDecimal(1, ergebnis.getErgebnis());
-					int count = stmPunkteUpdate.executeUpdate();
+				try (Connection con = dataSource.getConnection();
+						PreparedStatement stm = con.prepareStatement(stmPunkteUpdate)) {
+					stm.setBigDecimal(1, ergebnis.getErgebnis());
+					int count = stm.executeUpdate();
 
 					if (count != 1) {
 						throw new IllegalStateException("Beim Update von Ergebnis ID=" + ergebnis.getId() + " wurden "
 								+ count + " Zeilen geändert!");
 					}
 
-					connection.commit();
 				}
 				catch (SQLException e) {
-					e.printStackTrace();
+					throw new IllegalStateException("Error executing " + stmPunkteUpdate, e);
 				}
 
 			}
 			else if (evt.getPropertyName().matches(Ergebnis.PLATZ_CHANGE_PROPERTY)) {
-				try {
-					stmPlatzUpdate.setInt(1, ergebnis.getPlatz());
-					int count = stmPlatzUpdate.executeUpdate();
+				try (Connection con = dataSource.getConnection();
+						PreparedStatement stm = con.prepareStatement(stmPlatzUpdate)) {
+					stm.setInt(1, ergebnis.getPlatz());
+					int count = stm.executeUpdate();
 
 					if (count != 1) {
 						throw new IllegalStateException("Beim Update von Platz ID=" + ergebnis.getId() + " wurden "
 								+ count + " Zeilen geändert!");
 					}
 
-					connection.commit();
 				}
 				catch (SQLException e) {
 					e.printStackTrace();
@@ -283,10 +277,11 @@ class PersisterProductive implements Persister {
 
 			}
 			else if (evt.getPropertyName().matches(Ergebnis.STARTERNAME_CHANGE_PROPERTY)) {
-				try {
+				try (Connection con = dataSource.getConnection();
+						PreparedStatement stm = con.prepareStatement(stmNameUpdate)) {
 
-					stmNameUpdate.setString(1, ergebnis.getStarterName());
-					int count = stmNameUpdate.executeUpdate();
+					stm.setString(1, ergebnis.getStarterName());
+					int count = stm.executeUpdate();
 
 					if (count != 1) {
 						throw new IllegalStateException("Beim Update von StarterName ID=" + ergebnis.getId()
@@ -294,7 +289,6 @@ class PersisterProductive implements Persister {
 								+ ") !");
 					}
 
-					connection.commit();
 				}
 				catch (SQLException e) {
 					e.printStackTrace();
@@ -307,69 +301,64 @@ class PersisterProductive implements Persister {
 
 	private class PeristerWertungChangeListener implements PropertyChangeListener {
 
-		private Connection connection;
+		private String valueUpdate;
 
-		private PreparedStatement valueUpdate;
+		private String valueInsert;
 
-		private PreparedStatement valueInsert;
+		private String selectCount;
 
-		private PreparedStatement selectCount;
-
-		private PreparedStatement updateWertung;
+		private String updateWertung;
 
 		private PeristerWertungChangeListener(Wertung wertung) {
 			super();
-			try {
-				this.connection = hsql.getConnection();
-				selectCount = connection.prepareStatement("select count(*) FROM VALUE WHERE wertung=" + wertung.getId()
-						+ " AND type=?");
-				valueUpdate = connection.prepareStatement("UPDATE VALUE SET value=? WHERE wertung=" + wertung.getId()
-						+ " AND ergebnis_index=? AND type=?");
-				valueInsert = connection.prepareStatement(
-						"INSERT INTO VALUE ( WERTUNG, ERGEBNIS_INDEX, PRECISION, TYPE, VALUE ) VALUES ("
-								+ wertung.getId() +
-								",?,?,?,?);");
-				updateWertung = connection.prepareStatement("UPDATE WERTUNG SET ERGEBNIS=? WHERE ID = ?");
-			}
-			catch (SQLException e) {
-				throw new IllegalStateException("Unable to create Database Statements", e);
-			}
+			selectCount = "select count(*) FROM VALUE WHERE wertung=" + wertung.getId()
+					+ " AND type=?";
+			valueUpdate = "UPDATE VALUE SET value=? WHERE wertung=" + wertung.getId()
+					+ " AND ergebnis_index=? AND type=?";
+			valueInsert = "INSERT INTO VALUE ( WERTUNG, ERGEBNIS_INDEX, PRECISION, TYPE, VALUE ) VALUES ("
+					+ wertung.getId() +
+					",?,?,?,?);";
+			updateWertung = "UPDATE WERTUNG SET ERGEBNIS=? WHERE ID = ?";
 		}
 
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (evt.getSource() instanceof Value) {
 				Value changed = (Value) evt.getSource();
-				try {
+				try (Connection con = dataSource.getConnection()) {
 
-					PreparedStatement prepared;
+					boolean exists;
 
-					selectCount.setString(1, changed.getType().name());
-					ResultSet rs = selectCount.executeQuery();
+					try (PreparedStatement stmSelectCount = con.prepareStatement(selectCount)) {
 
-					boolean exists = rs.next() && rs.getInt(1) > 0;
-					rs.close();
+						stmSelectCount.setString(1, changed.getType().name());
+						ResultSet rs = stmSelectCount.executeQuery();
+
+						exists = rs.next() && rs.getInt(1) > 0;
+					}
+
+					int count = -1;
 					if (exists) {
-
-						prepared = valueUpdate;
-						prepared.setBigDecimal(1, changed.getValue());
-						prepared.setInt(2, changed.getIndex());
-						prepared.setString(3, changed.getType().name());
+						try (PreparedStatement prepared = con.prepareStatement(valueUpdate)) {
+							prepared.setBigDecimal(1, changed.getValue());
+							prepared.setInt(2, changed.getIndex());
+							prepared.setString(3, changed.getType().name());
+							count = prepared.executeUpdate();
+						}
 					}
 					else {
-						prepared = valueInsert;
-						prepared.setInt(1, changed.getIndex());
-						prepared.setInt(2, changed.getPrecision());
-						prepared.setString(3, changed.getType().name());
-						prepared.setBigDecimal(4, changed.getValue());
+						try (PreparedStatement prepared = con.prepareStatement(valueInsert)) {
+							prepared.setInt(1, changed.getIndex());
+							prepared.setInt(2, changed.getPrecision());
+							prepared.setString(3, changed.getType().name());
+							prepared.setBigDecimal(4, changed.getValue());
+							count = prepared.executeUpdate();
+						}
 					}
-
-					int count = prepared.executeUpdate();
 
 					if (count != 1) {
 						throw new IllegalStateException("Beim Update von Kari wurden " + count + " Zeilen geändert!");
 					}
-					connection.commit();
 
 				}
 				catch (SQLException | SecurityException | IllegalArgumentException e) {
@@ -379,10 +368,12 @@ class PersisterProductive implements Persister {
 			else if (evt.getSource() instanceof Wertung
 					&& Wertung.ERGEBNIS_CHANGE_PROPERTY.equals(evt.getPropertyName())) {
 				Wertung w = (Wertung) evt.getSource();
-				try {
-					updateWertung.setBigDecimal(1, w.getErgebnis());
-					updateWertung.setInt(2, w.getId());
-					int count = updateWertung.executeUpdate();
+				try (Connection connection = dataSource.getConnection();
+						PreparedStatement stm = connection.prepareStatement(updateWertung,
+								Statement.RETURN_GENERATED_KEYS)) {
+					stm.setBigDecimal(1, w.getErgebnis());
+					stm.setInt(2, w.getId());
+					int count = stm.executeUpdate();
 
 					if (count != 1) {
 						throw new IllegalStateException("Beim Update von " + w

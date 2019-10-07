@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.hsqldb.jdbc.JDBCDataSource;
+
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.WertungFactory;
 import de.kreth.vereinsmeisterschaftprog.db.Persister;
@@ -16,7 +18,11 @@ public class FactoryProductive extends Factory {
 
 	public FactoryProductive() {
 		instance = this;
-		persister = new PersisterProductive();
+
+		JDBCDataSource ds = new JDBCDataSource();
+		ds.setUrl("jdbc:hsqldb:file:db/DatabaseFile;shutdown=true");
+		ds.setUser("SA");
+		persister = new PersisterProductive(ds);
 		wertungFactory = new WertungFactory();
 	}
 

@@ -1,19 +1,30 @@
 package de.kreth.vereinsmeisterschaftprog.db;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
-import de.kreth.hsqldbcreator.HsqlCreator;
+import javax.sql.DataSource;
+
+import de.kreth.dbmanager.DatabaseType;
 
 public class DatabaseTableCreator {
 
-	HsqlCreator hsql = HsqlCreator.getInstance();
+	private final DatabaseType type;
+
+	private final DataSource dataSource;
+
+	public DatabaseTableCreator(DataSource dataSource, DatabaseType type) {
+		this.dataSource = dataSource;
+		this.type = type;
+	}
 
 	// changed version
 	public void checkVersion() {
 
-		try {
-			ResultSet rs = hsql.executeQuery(
+		try (Connection conn = dataSource.getConnection(); Statement stm = conn.createStatement()) {
+			ResultSet rs = stm.executeQuery(
 					"SELECT count(*) as Anzahl FROM INFORMATION_SCHEMA.SYSTEM_TABLES where TABLE_TYPE='TABLE'");
 			boolean first = rs.next();
 			int anzahl = rs.getInt(1);
@@ -22,7 +33,7 @@ public class DatabaseTableCreator {
 				executeFromVersion(0);
 			}
 			else {
-				rs = hsql.executeQuery("SELECT value FROM version");
+				rs = stm.executeQuery("SELECT value FROM version");
 				rs.next();
 				int version = rs.getInt(1);
 				executeFromVersion(version);
@@ -44,7 +55,7 @@ public class DatabaseTableCreator {
 		switch (version) {
 		case 0:
 		case 5:
-			String[] allSql = version4;
+			String[] allSql = version4();
 			execute(allSql);
 
 			break;
@@ -56,8 +67,8 @@ public class DatabaseTableCreator {
 	private void execute(String[] allSql) throws SQLException {
 
 		for (String sql : allSql) {
-			try {
-				hsql.execute(sql);
+			try (Connection conn = dataSource.getConnection(); Statement stm = conn.createStatement()) {
+				stm.execute(sql);
 			}
 			catch (SQLException e) {
 				throw new SQLException("Error in SQL: " + sql, e);
@@ -65,13 +76,18 @@ public class DatabaseTableCreator {
 		}
 	}
 
-	private String[] version4 = {
-			"CREATE TABLE VERSION (value INTEGER);",
-			"INSERT INTO VERSION VALUES(4);",
-			"CREATE TABLE ERGEBNIS (id INTEGER IDENTITY, startername VARCHAR(255) NOT NULL, wettkampf VARCHAR(25), ergebnis REAL, platz INTEGER, random INTEGER);",
-			"CREATE TABLE WERTUNG (id INTEGER IDENTITY, durchgang varchar(255) NOT NULL, ergebnis_id INTEGER NOT NULL, ergebnis REAL, FOREIGN KEY (ergebnis_id) REFERENCES ERGEBNIS(id));",
-			"CREATE TABLE VALUE (wertung INTEGER, ergebnis_index INTEGER, precision INTEGER, type varchar(255) NOT NULL, value REAL"
-					+ ", FOREIGN KEY (wertung) REFERENCES WERTUNG(id), PRIMARY KEY (wertung,ergebnis_index));",
-			"CREATE TABLE GRUPPE (id INTEGER IDENTITY, name varchar(255) NOT NULL, beschreibung varchar(255) NULL)"
-	};
+	private String[] version4() {
+		return new String[] {
+				"CREATE TABLE VERSION (value INTEGER);",
+				"INSERT INTO VERSION VALUES(4);",
+				"CREATE TABLE ERGEBNIS (id INTEGER " + type.autoIncrementIdType
+						+ ", startername VARCHAR(255) NOT NULL, wettkampf VARCHAR(25), ergebnis DOUBLE, platz INTEGER, random INTEGER);",
+				"CREATE TABLE WERTUNG (id INTEGER " + type.autoIncrementIdType
+						+ ", durchgang varchar(255) NOT NULL, ergebnis_id INTEGER NOT NULL, ergebnis DOUBLE, FOREIGN KEY (ergebnis_id) REFERENCES ERGEBNIS(id));",
+				"CREATE TABLE VALUE (wertung INTEGER, ergebnis_index INTEGER, precision INTEGER, type varchar(255) NOT NULL, value DOUBLE"
+						+ ", FOREIGN KEY (wertung) REFERENCES WERTUNG(id), PRIMARY KEY (wertung,ergebnis_index));",
+				"CREATE TABLE GRUPPE (id INTEGER " + type.autoIncrementIdType
+						+ ", name varchar(255) NOT NULL, beschreibung varchar(255) NULL)"
+		};
+	}
 }
