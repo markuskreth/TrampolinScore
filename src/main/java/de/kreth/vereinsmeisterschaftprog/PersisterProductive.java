@@ -33,10 +33,10 @@ class PersisterProductive implements Persister {
 
 	private final DataSource dataSource;
 
-	public PersisterProductive(DataSource dataSource) {
+	public PersisterProductive(DataSource dataSource, DatabaseType dbType) {
 		this.dataSource = dataSource;
 
-		DatabaseTableCreator creator = new DatabaseTableCreator(this.dataSource, DatabaseType.HSQLDB);
+		DatabaseTableCreator creator = new DatabaseTableCreator(this.dataSource, dbType);
 		creator.checkVersion();
 	}
 
@@ -105,7 +105,7 @@ class PersisterProductive implements Persister {
 
 	private Value createValueFrom(ResultSet rs) throws SQLException {
 		ValueType type = ValueType.valueOf(rs.getString("type"));
-		int precision = rs.getInt("precision");
+		int precision = rs.getInt("precision_value");
 		int index = rs.getInt("ergebnis_index");
 		BigDecimal value = rs.getBigDecimal("value");
 		Value v = new Value(type, precision, index);
@@ -315,7 +315,7 @@ class PersisterProductive implements Persister {
 					+ " AND type=?";
 			valueUpdate = "UPDATE VALUE SET value=? WHERE wertung=" + wertung.getId()
 					+ " AND ergebnis_index=? AND type=?";
-			valueInsert = "INSERT INTO VALUE ( WERTUNG, ERGEBNIS_INDEX, PRECISION, TYPE, VALUE ) VALUES ("
+			valueInsert = "INSERT INTO VALUE ( WERTUNG, ERGEBNIS_INDEX, precision_value, TYPE, VALUE ) VALUES ("
 					+ wertung.getId() +
 					",?,?,?,?);";
 			updateWertung = "UPDATE WERTUNG SET ERGEBNIS=? WHERE ID = ?";

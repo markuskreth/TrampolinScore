@@ -14,12 +14,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>de.kreth.trampolin.wertung</groupId>
 			<artifactId>trampolin-wertung-business</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
@@ -29,7 +23,6 @@
 			<artifactId>commons-text</artifactId>
 			<version>1.6</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
@@ -39,6 +32,18 @@
 			<groupId>de.kreth</groupId>
 			<artifactId>databasedefinition</artifactId>
 			<version>0.0.9-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.16</version>
 		</dependency>
 	</dependencies>
 

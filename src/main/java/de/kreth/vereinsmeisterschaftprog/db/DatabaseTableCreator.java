@@ -24,10 +24,10 @@ public class DatabaseTableCreator {
 	public void checkVersion() {
 
 		try (Connection conn = dataSource.getConnection(); Statement stm = conn.createStatement()) {
-			ResultSet rs = stm.executeQuery(
-					"SELECT count(*) as Anzahl FROM INFORMATION_SCHEMA.SYSTEM_TABLES where TABLE_TYPE='TABLE'");
+
+			ResultSet rs = conn.getMetaData().getTables(null, null, "version", new String[] { "TABLE_TYPE" });
 			boolean first = rs.next();
-			int anzahl = rs.getInt(1);
+			int anzahl = first ? rs.getInt(1) : 0;
 
 			if (!first || anzahl < 1) {
 				executeFromVersion(0);
@@ -84,7 +84,7 @@ public class DatabaseTableCreator {
 						+ ", startername VARCHAR(255) NOT NULL, wettkampf VARCHAR(25), ergebnis DOUBLE, platz INTEGER, random INTEGER);",
 				"CREATE TABLE WERTUNG (id INTEGER " + type.autoIncrementIdType
 						+ ", durchgang varchar(255) NOT NULL, ergebnis_id INTEGER NOT NULL, ergebnis DOUBLE, FOREIGN KEY (ergebnis_id) REFERENCES ERGEBNIS(id));",
-				"CREATE TABLE VALUE (wertung INTEGER, ergebnis_index INTEGER, precision INTEGER, type varchar(255) NOT NULL, value DOUBLE"
+				"CREATE TABLE VALUE (wertung INTEGER, ergebnis_index INTEGER, precision_value INTEGER, type varchar(255) NOT NULL, value DOUBLE"
 						+ ", FOREIGN KEY (wertung) REFERENCES WERTUNG(id), PRIMARY KEY (wertung,ergebnis_index));",
 				"CREATE TABLE GRUPPE (id INTEGER " + type.autoIncrementIdType
 						+ ", name varchar(255) NOT NULL, beschreibung varchar(255) NULL)"
