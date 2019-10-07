@@ -51,7 +51,7 @@ class PersisterProductive implements Persister {
 				int id = rs.getInt("id");
 				String starterName = rs.getString("startername");
 				int random = rs.getInt("random");
-				List<Wertung> wertungen = getWertung(id);
+				List<Wertung> wertungen = getWertung(id, conn);
 
 				Ergebnis e = new Ergebnis(id, starterName, wk, random, wertungen);
 				e.addPropertyChangeListener(new PersisterErgebnisChangeListener(e));
@@ -64,19 +64,18 @@ class PersisterProductive implements Persister {
 		}
 	}
 
-	private List<Wertung> getWertung(int ergebnis_id) throws SQLException {
+	private List<Wertung> getWertung(int ergebnis_id, Connection conn) throws SQLException {
 
 		List<Wertung> wertungen = new ArrayList<>();
 
-		try (Connection conn = dataSource.getConnection();
-				PreparedStatement stm = conn.prepareStatement("SELECT * FROM wertung where ergebnis_id=?")) {
+		try (PreparedStatement stm = conn.prepareStatement("SELECT * FROM wertung where ergebnis_id=?")) {
 			stm.setInt(1, ergebnis_id);
 			ResultSet rs = stm.executeQuery();
 			while (rs.next()) {
 				String durchgString = rs.getString("durchgang");
 				Durchgang durchgang = Durchgang.valueOf(durchgString);
 				Wertung w = new Wertung(rs.getInt("id"), durchgang);
-				fillValues(w, stm);
+				fillValues(w, conn);
 				w.addPropertyChangeListener(new PeristerWertungChangeListener(w));
 				wertungen.add(w);
 			}
@@ -85,22 +84,26 @@ class PersisterProductive implements Persister {
 		return wertungen;
 	}
 
-	private void fillValues(Wertung w, Statement stm) throws SQLException {
-		ResultSet rs = stm.executeQuery("SELECT * FROM VALUE WHERE wertung=" + w.getId());
-		List<Value> werte = new ArrayList<>();
+	private void fillValues(Wertung w, Connection conn) throws SQLException {
+		try (Statement stm = conn.createStatement();
+				ResultSet rs = stm.executeQuery("SELECT * FROM VALUE WHERE wertung=" + w.getId())) {
 
-		while (rs.next()) {
-			werte.add(createValueFrom(rs));
+			List<Value> werte = new ArrayList<>();
+
+			while (rs.next()) {
+				werte.add(createValueFrom(rs));
+			}
+			try {
+				Method valueSetter = Wertung.class.getDeclaredMethod("setValues", List.class);
+				valueSetter.setAccessible(true);
+				valueSetter.invoke(w, werte);
+			}
+			catch (SecurityException | IllegalArgumentException | NoSuchMethodException | IllegalAccessException
+					| InvocationTargetException e) {
+				throw new SQLException("Unable to fill Values of " + w, e);
+			}
 		}
-		try {
-			Method valueSetter = Wertung.class.getDeclaredMethod("setValues", List.class);
-			valueSetter.setAccessible(true);
-			valueSetter.invoke(w, werte);
-		}
-		catch (SecurityException | IllegalArgumentException | NoSuchMethodException | IllegalAccessException
-				| InvocationTargetException e) {
-			throw new SQLException("Unable to fill Values of " + w, e);
-		}
+
 	}
 
 	private Value createValueFrom(ResultSet rs) throws SQLException {

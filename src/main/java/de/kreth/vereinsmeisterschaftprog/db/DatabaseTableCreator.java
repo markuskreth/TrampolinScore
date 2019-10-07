@@ -25,18 +25,27 @@ public class DatabaseTableCreator {
 
 		try (Connection conn = dataSource.getConnection(); Statement stm = conn.createStatement()) {
 
-			ResultSet rs = conn.getMetaData().getTables(null, null, "version", new String[] { "TABLE_TYPE" });
+			ResultSet rs = conn.getMetaData().getTables(null, null, "version", new String[] { "TABLE" });
 			boolean first = rs.next();
-			int anzahl = first ? rs.getInt(1) : 0;
 
-			if (!first || anzahl < 1) {
+			if (!first) {
 				executeFromVersion(0);
 			}
 			else {
 				rs = stm.executeQuery("SELECT value FROM version");
-				rs.next();
-				int version = rs.getInt(1);
-				executeFromVersion(version);
+				if (rs.next()) {
+
+					try {
+						int version = rs.getInt(1);
+						executeFromVersion(version);
+					}
+					catch (SQLException e) {
+						executeFromVersion(0);
+					}
+				}
+				else {
+					executeFromVersion(0);
+				}
 			}
 
 		}

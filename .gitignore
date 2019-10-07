@@ -57,3 +57,5 @@ Thumbs.db
 /target/
 
 db.bak/
+
+src/main/resources/database.properties
