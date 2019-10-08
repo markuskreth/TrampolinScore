@@ -23,7 +23,6 @@ public class DreisprungCalculator extends MaxValueCalculator {
 		return value
 				.multiply(BigDecimal.valueOf(2))
 				.add(augend)
-//				.subtract(BigDecimal.ONE)
 				.setScale(1, RoundingMode.HALF_UP);
 	}
 

@@ -64,9 +64,8 @@ public class WertungCalculatorFactory {
 
 		result = result.add(dreisprungCalculator
 				.calculate(wertung));
-		result = result
-				.add(seilsprungCalculator
-						.calculate(wertung));
+		result = result.add(seilsprungCalculator
+				.calculate(wertung));
 		return result;
 	}
 

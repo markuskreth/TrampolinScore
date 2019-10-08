@@ -76,6 +76,7 @@ public class SeilsprungCalculatorTest {
 		data.add(new Object[] { 4, BigDecimal.valueOf(50), BigDecimal.valueOf(6).setScale(1) });
 		data.add(new Object[] { 4, BigDecimal.valueOf(60), BigDecimal.valueOf(7.5).setScale(1) });
 		data.add(new Object[] { 4, BigDecimal.valueOf(70), BigDecimal.valueOf(9).setScale(1) });
+		data.add(new Object[] { 4, BigDecimal.valueOf(77), BigDecimal.valueOf(10.1).setScale(1) });
 		data.add(new Object[] { 4, BigDecimal.valueOf(80), BigDecimal.valueOf(10.5).setScale(1) });
 
 		data.add(new Object[] { 3, BigDecimal.valueOf(24), BigDecimal.valueOf(3.6).setScale(1) });
