@@ -4,13 +4,17 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import de.kreth.vereinsmeisterschaftprog.business.GruppeChangeListener;
+import de.kreth.vereinsmeisterschaftprog.data.Gruppe;
 import de.kreth.vereinsmeisterschaftprog.data.Value;
 import de.kreth.vereinsmeisterschaftprog.data.ValueType;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
-public class MaxValueCalculator implements WertungCalcularor {
+public abstract class MaxValueCalculator implements WertungCalcularor, GruppeChangeListener {
 
 	private final ValueType relevantValueType;
+
+	private Gruppe currentGruppe;
 
 	public MaxValueCalculator(ValueType relevantValueType) {
 		super();
@@ -20,7 +24,8 @@ public class MaxValueCalculator implements WertungCalcularor {
 	@Override
 	public BigDecimal calculate(Wertung wertung) {
 		List<Value> werte = wertung.getByType(relevantValueType);
-		return getMax(werte);
+		BigDecimal max = getMax(werte);
+		return valueTransform(max, currentGruppe);
 	}
 
 	private BigDecimal getMax(List<Value> werte) {
@@ -32,6 +37,13 @@ public class MaxValueCalculator implements WertungCalcularor {
 			result = max.get();
 		}
 		return result;
+	}
+
+	protected abstract BigDecimal valueTransform(BigDecimal value, Gruppe currentGroup);
+
+	@Override
+	public void changedTo(Gruppe gruppe) {
+		this.currentGruppe = gruppe;
 	}
 
 }

@@ -3,11 +3,20 @@ package de.kreth.vereinsmeisterschaftprog.data.calculatoren;
 import java.math.BigDecimal;
 import java.util.List;
 
+import de.kreth.vereinsmeisterschaftprog.business.GruppeChangeListener;
 import de.kreth.vereinsmeisterschaftprog.data.Value;
 import de.kreth.vereinsmeisterschaftprog.data.ValueType;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
 
 public class WertungCalculatorFactory {
+
+	private static final MaxValueCalculator dreisprungCalculator = new DreisprungCalculator();
+
+	private static final MaxValueCalculator seilsprungCalculator = new SeilspringenCalculator();
+
+	public static GruppeChangeListener[] getGruppeListeners() {
+		return new GruppeChangeListener[] { dreisprungCalculator, seilsprungCalculator };
+	}
 
 	public static BigDecimal calculate(Wertung wertung) {
 		BigDecimal result = BigDecimal.ZERO;
@@ -53,8 +62,11 @@ public class WertungCalculatorFactory {
 			}
 		}
 
-		result = result.add(new MaxValueCalculator(ValueType.DREISPRUNG).calculate(wertung));
-		result = result.add(new MaxValueCalculator(ValueType.SEILSPRINGEN).calculate(wertung));
+		result = result.add(dreisprungCalculator
+				.calculate(wertung));
+		result = result
+				.add(seilsprungCalculator
+						.calculate(wertung));
 		return result;
 	}
 

@@ -3,6 +3,8 @@ package de.kreth.vereinsmeisterschaftprog.business;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -14,12 +16,15 @@ import de.kreth.vereinsmeisterschaftprog.Factory;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
 import de.kreth.vereinsmeisterschaftprog.data.Gruppe;
 import de.kreth.vereinsmeisterschaftprog.data.Wettkampf;
+import de.kreth.vereinsmeisterschaftprog.data.calculatoren.WertungCalculatorFactory;
 import de.kreth.vereinsmeisterschaftprog.db.Persister;
 import de.kreth.vereinsmeisterschaftprog.exporter.CsvExporter;
 import de.kreth.vereinsmeisterschaftprog.gui.MainView;
 import de.kreth.vereinsmeisterschaftprog.gui.components.WettkampfPanel;
 
 public class MainFrameBusiness {
+
+	private final List<GruppeChangeListener> gruppeListeners = new ArrayList<>();
 
 	Map<Gruppe, Wettkampf> wettkaempfe;
 
@@ -41,8 +46,10 @@ public class MainFrameBusiness {
 		persister = Factory.getInstance().getPersister();
 		gruppen = persister.loadPflichten();
 
+		gruppeListeners.addAll(Arrays.asList(WertungCalculatorFactory.getGruppeListeners()));
 		if (gruppen.size() > 0) {
 			currentGruppe = gruppen.get(0);
+			gruppeListeners.forEach(g -> g.changedTo(currentGruppe));
 		}
 		else {
 			currentGruppe = Gruppe.INVALID;
@@ -80,6 +87,8 @@ public class MainFrameBusiness {
 			currentGruppe = gruppen.get(0);
 			wettkampfBusiness.setWettkampf(wettkaempfe.get(currentGruppe));
 		}
+
+		gruppeListeners.forEach(g -> g.changedTo(currentGruppe));
 	}
 
 	public List<Gruppe> getGruppen() {
