@@ -11,7 +11,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import javax.sql.DataSource;
@@ -315,7 +317,7 @@ class PersisterProductive implements Persister {
 		private PeristerWertungChangeListener(Wertung wertung) {
 			super();
 			selectCount = "select count(*) FROM VALUE WHERE wertung=" + wertung.getId()
-					+ " AND type=?";
+					+ " AND type=? AND ERGEBNIS_INDEX=?";
 			valueUpdate = "UPDATE VALUE SET value=? WHERE wertung=" + wertung.getId()
 					+ " AND ergebnis_index=? AND type=?";
 			valueInsert = "INSERT INTO VALUE ( WERTUNG, ERGEBNIS_INDEX, precision_value, TYPE, VALUE ) VALUES ("
@@ -335,6 +337,7 @@ class PersisterProductive implements Persister {
 					try (PreparedStatement stmSelectCount = con.prepareStatement(selectCount)) {
 
 						stmSelectCount.setString(1, changed.getType().name());
+						stmSelectCount.setInt(2, changed.getIndex());
 						ResultSet rs = stmSelectCount.executeQuery();
 
 						exists = rs.next() && rs.getInt(1) > 0;
@@ -360,7 +363,8 @@ class PersisterProductive implements Persister {
 					}
 
 					if (count != 1) {
-						throw new IllegalStateException("Beim Update von Kari wurden " + count + " Zeilen geändert!");
+						throw new IllegalStateException("Beim Update von " + changed.identifier()
+								+ " wurden " + count + " Zeilen geändert!");
 					}
 
 				}
@@ -389,6 +393,38 @@ class PersisterProductive implements Persister {
 			}
 		}
 
+	}
+
+	@Override
+	public List<Ergebnis> allErgebnisse() throws SQLException {
+
+		List<Gruppe> pflichten = loadPflichten();
+		Map<String, Wettkampf> wettkampMap = new HashMap<>();
+		for (Gruppe g : pflichten) {
+			Wettkampf wk = new Wettkampf(g.getName(), g);
+			wettkampMap.put(g.getName(), wk);
+		}
+		List<Ergebnis> ergebnisse = new ArrayList<>();
+
+		try (Connection conn = dataSource.getConnection();
+				PreparedStatement stm = conn
+						.prepareStatement("SELECT * from ergebnis")) {
+
+			ResultSet rs = stm.executeQuery();
+			while (rs.next()) {
+				int id = rs.getInt("id");
+				String starterName = rs.getString("startername");
+				int random = rs.getInt("random");
+				List<Wertung> wertungen = getWertung(id, conn);
+				String wettkampfName = rs.getString("wettkampf");
+
+				Ergebnis e = new Ergebnis(id, starterName, wettkampMap.get(wettkampfName), random, wertungen);
+				e.addPropertyChangeListener(new PersisterErgebnisChangeListener(e));
+				ergebnisse.add(e);
+			}
+
+		}
+		return ergebnisse;
 	}
 
 }

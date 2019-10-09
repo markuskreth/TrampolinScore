@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import de.kreth.vereinsmeisterschaftprog.Factory;
 import de.kreth.vereinsmeisterschaftprog.data.calculatoren.WertungCalculatorFactory;
 
 public class Wertung implements Cloneable, PropertyChangeListener {
@@ -22,7 +23,7 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 
 	public static final String DIFF_CHANGE_PROPERTY = Wertung.class.getName() + " Schwierigkeit geändert!";
 
-	private final List<Value> werte = new ArrayList<>();
+	private final List<Value> werte;
 
 	private BigDecimal ergebnis = BigDecimal.ZERO;
 
@@ -33,6 +34,7 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 	private int id;
 
 	public Wertung(int id, Durchgang durchgang) {
+		werte = new ArrayList<>();
 		this.id = id;
 		this.durchgang = durchgang;
 		this.pcs = new PropertyChangeSupport(this);
@@ -47,11 +49,20 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 	 * @return
 	 */
 	public List<Value> allValues() {
+
+		setupWerte();
 		return Collections.unmodifiableList(werte);
 	}
 
 	public List<Value> getByType(ValueType type) {
+		setupWerte();
 		return werte.stream().filter(v -> v.getType() == type).sorted(this::compare).collect(Collectors.toList());
+	}
+
+	private void setupWerte() {
+		if (werte.isEmpty()) {
+			Factory.getInstance().getWertungFactory().setup(this);
+		}
 	}
 
 	@Override
@@ -127,6 +138,7 @@ public class Wertung implements Cloneable, PropertyChangeListener {
 	}
 
 	public Value get(ValueType type, int index) {
+		setupWerte();
 		for (Value v : this.werte) {
 			if (type.equals(v.getType()) && index == v.getIndex()) {
 				return v;

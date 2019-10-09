@@ -42,10 +42,10 @@ public class WertungFactory {
 			}
 		}
 		else if (Durchgang.DREISPRUNG.equals(wertung.getDurchgang())) {
-			values.add(new Value(ValueType.DREISPRUNG, 1));
+			values.add(new Value(ValueType.DREISPRUNG, 2));
 		}
 		else if (Durchgang.SEILSPRINGEN.equals(wertung.getDurchgang())) {
-			values.add(new Value(ValueType.SEILSPRINGEN, 1));
+			values.add(new Value(ValueType.SEILSPRINGEN, 0));
 		}
 
 		wertung.setValues(values);

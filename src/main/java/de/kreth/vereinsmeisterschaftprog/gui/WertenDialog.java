@@ -48,8 +48,6 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
 	private final List<JFormattedTextField> valueFields = new ArrayList<>();
 
-	private InputConverter converter = new InputConverter();
-
 	private JLabel lblStarter;
 
 	private final Wertung wertung;
@@ -242,6 +240,9 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
 		lblStarter.setText(starterName);
 		this.dummy = wertung.clone();
+		int precision = wertung.allValues().get(0).getPrecision();
+		InputConverter converter = new InputConverter(precision);
+
 		for (JFormattedTextField f : valueFields) {
 			Value v = (Value) f.getClientProperty(Value.class);
 			if (ValueType.SCHWIERIGKEIT.equals(v.getType())) {
@@ -272,14 +273,19 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 
 	private class DecimalFocusListener extends FocusAdapter {
 
-		private JTextField field;
+		private final JTextField field;
 
-		private Value kari;
+		private final Value kari;
+
+		private final InputConverter converter;
 
 		public DecimalFocusListener(JTextField field, Value kari) {
 
 			this.field = field;
 			this.kari = kari;
+
+			int precision = kari.getPrecision();
+			converter = new InputConverter(precision);
 		}
 
 		@Override
@@ -300,8 +306,9 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 	}
 
 	@Override
-
 	public void propertyChange(PropertyChangeEvent evt) {
+
+		InputConverter converter = new InputConverter(2);
 		if (Ergebnis.STARTERNAME_CHANGE_PROPERTY.equals(evt.getPropertyName())) {
 			starterName = evt.getNewValue().toString();
 			lblStarter.setText(starterName);

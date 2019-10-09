@@ -23,29 +23,41 @@ public class DatabaseTableCreator {
 	// changed version
 	public void checkVersion() {
 
-		try (Connection conn = dataSource.getConnection(); Statement stm = conn.createStatement()) {
+		try (Connection conn = dataSource.getConnection()) {
+			conn.setAutoCommit(false);
 
+//			printAllColumns(conn.getMetaData().getTables(null, null, null, new String[] { "TABLE" }));
 			ResultSet rs = conn.getMetaData().getTables(null, null, "version", new String[] { "TABLE" });
 			boolean first = rs.next();
 
-			if (!first) {
-				executeFromVersion(0);
-			}
-			else {
-				rs = stm.executeQuery("SELECT value FROM version");
-				if (rs.next()) {
+			try (Statement stm = conn.createStatement()) {
 
-					try {
-						int version = rs.getInt(1);
-						executeFromVersion(version);
-					}
-					catch (SQLException e) {
-						executeFromVersion(0);
-					}
+				if (!first) {
+					executeFromVersion(stm, 0);
 				}
 				else {
-					executeFromVersion(0);
+					rs = stm.executeQuery("SELECT value FROM version");
+					if (rs.next()) {
+
+						try {
+							int version = rs.getInt(1);
+							executeFromVersion(stm, version);
+						}
+						catch (SQLException e) {
+							executeFromVersion(stm, 0);
+						}
+					}
+					else {
+						executeFromVersion(stm, 0);
+					}
 				}
+				conn.commit();
+			}
+			catch (Exception e) {
+				conn.rollback();
+			}
+			finally {
+				conn.setAutoCommit(false);
 			}
 
 		}
@@ -55,7 +67,22 @@ public class DatabaseTableCreator {
 
 	}
 
-	private void executeFromVersion(int version) throws SQLException {
+	private void printAllColumns(ResultSet tables) throws SQLException {
+		int columns[] = { 2, 3, 4, 7, 8 };
+		for (int col : columns) {
+			System.out.print(tables.getMetaData().getColumnName(col) + "\t\t");
+		}
+		System.out.println();
+		System.out.println();
+		while (tables.next()) {
+			for (int col : columns) {
+				System.out.print(tables.getString(col) + "\t\t");
+			}
+			System.out.println();
+		}
+	}
+
+	private void executeFromVersion(Statement stm, int version) throws SQLException {
 
 		if (version > 0 && version < 4) {
 			throw new IllegalStateException(
@@ -65,7 +92,7 @@ public class DatabaseTableCreator {
 		case 0:
 		case 5:
 			String[] allSql = version4();
-			execute(allSql);
+			execute(stm, allSql);
 
 			break;
 		default:
@@ -73,10 +100,10 @@ public class DatabaseTableCreator {
 		}
 	}
 
-	private void execute(String[] allSql) throws SQLException {
+	private void execute(Statement stm, String[] allSql) throws SQLException {
 
 		for (String sql : allSql) {
-			try (Connection conn = dataSource.getConnection(); Statement stm = conn.createStatement()) {
+			try {
 				stm.execute(sql);
 			}
 			catch (SQLException e) {
@@ -94,7 +121,7 @@ public class DatabaseTableCreator {
 				"CREATE TABLE WERTUNG (id INTEGER " + type.autoIncrementIdType
 						+ ", durchgang varchar(255) NOT NULL, ergebnis_id INTEGER NOT NULL, ergebnis DOUBLE, FOREIGN KEY (ergebnis_id) REFERENCES ERGEBNIS(id));",
 				"CREATE TABLE VALUE (wertung INTEGER, ergebnis_index INTEGER, precision_value INTEGER, type varchar(255) NOT NULL, value DOUBLE"
-						+ ", FOREIGN KEY (wertung) REFERENCES WERTUNG(id), PRIMARY KEY (wertung,ergebnis_index));",
+						+ ", FOREIGN KEY (wertung) REFERENCES WERTUNG(id), PRIMARY KEY (wertung,ergebnis_index,type));",
 				"CREATE TABLE GRUPPE (id INTEGER " + type.autoIncrementIdType
 						+ ", name varchar(255) NOT NULL, beschreibung varchar(255) NULL)"
 		};

@@ -41,9 +41,9 @@ public class ErgebnisListRenderer extends DefaultListCellRenderer {
 	public void setDurchgang(Durchgang durchgang) {
 		this.durchgang = durchgang;
 	}
-
-	public void buttonClicked(Component renderComp) {
-		ErgebnisPanel panel = (ErgebnisPanel) renderComp;
-		panel.performButtonClick();
-	}
+//
+//	public void buttonClicked(Component renderComp) {
+//		ErgebnisPanel panel = (ErgebnisPanel) renderComp;
+//		panel.performButtonClick();
+//	}
 }

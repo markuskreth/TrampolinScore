@@ -2,14 +2,11 @@ package de.kreth.vereinsmeisterschaftprog.gui.components;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -20,7 +17,6 @@ import de.kreth.vereinsmeisterschaftprog.business.WettkampfBusiness;
 import de.kreth.vereinsmeisterschaftprog.data.Durchgang;
 import de.kreth.vereinsmeisterschaftprog.data.Ergebnis;
 import de.kreth.vereinsmeisterschaftprog.data.Wertung;
-import de.kreth.vereinsmeisterschaftprog.gui.WertenDialog;
 
 public class ErgebnisPanel extends JPanel {
 
@@ -99,23 +95,23 @@ public class ErgebnisPanel extends JPanel {
 		}
 
 	}
-
-	public void performButtonClick() {
-
-		Optional<Wertung> wertung = ergebnis.getWertungen().stream().filter(w -> durchgang == w.getDurchgang())
-				.findAny();
-
-		if (wertung.isPresent()) {
-
-			final WertenDialog dlg = new WertenDialog(business, ergebnis.getStarterName(), wertung.get());
-			ergebnis.addPropertyChangeListener(dlg);
-			dlg.addWindowListener(new WindowAdapter() {
-				@Override
-				public void windowClosed(WindowEvent e) {
-					ergebnis.removePropertyChangeListener(dlg);
-				}
-			});
-			dlg.setVisible(true);
-		}
-	}
+//
+//	public void performButtonClick() {
+//
+//		Optional<Wertung> wertung = ergebnis.getWertungen().stream().filter(w -> durchgang == w.getDurchgang())
+//				.findAny();
+//
+//		if (wertung.isPresent()) {
+//
+//			final WertenDialog dlg = new WertenDialog(business, ergebnis.getStarterName(), wertung.get());
+//			ergebnis.addPropertyChangeListener(dlg);
+//			dlg.addWindowListener(new WindowAdapter() {
+//				@Override
+//				public void windowClosed(WindowEvent e) {
+//					ergebnis.removePropertyChangeListener(dlg);
+//				}
+//			});
+//			dlg.setVisible(true);
+//		}
+//	}
 }
