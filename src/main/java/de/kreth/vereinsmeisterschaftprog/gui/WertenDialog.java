@@ -289,6 +289,11 @@ public class WertenDialog extends JDialog implements PropertyChangeListener {
 		}
 
 		@Override
+		public void focusGained(FocusEvent e) {
+			field.selectAll();
+		}
+
+		@Override
 		public void focusLost(FocusEvent e) {
 
 			try {

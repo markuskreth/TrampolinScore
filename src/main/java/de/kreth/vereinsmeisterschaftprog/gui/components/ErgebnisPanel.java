@@ -22,8 +22,6 @@ public class ErgebnisPanel extends JPanel {
 
 	private static final long serialVersionUID = -126921232179715189L;
 
-	private final WettkampfBusiness business;
-
 	private final Ergebnis ergebnis;
 
 	private final JLabel lblStarterName;
@@ -34,8 +32,6 @@ public class ErgebnisPanel extends JPanel {
 
 	private final JLabel lblPlatz;
 
-	private final Durchgang durchgang;
-
 	private final DecimalFormat df;
 
 	/**
@@ -45,10 +41,8 @@ public class ErgebnisPanel extends JPanel {
 	 */
 	public ErgebnisPanel(final Ergebnis ergebnis, final Durchgang durchgang, WettkampfBusiness business) {
 		this.ergebnis = ergebnis;
-		this.business = business;
 		FlowLayout flowLayout = (FlowLayout) getLayout();
 		flowLayout.setHgap(15);
-		this.durchgang = durchgang;
 
 		df = new DecimalFormat("#.0");
 
